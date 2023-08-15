@@ -25,6 +25,8 @@
 #include "build_field.h"
 #include "context.h"
 
+#include <RAJA/RAJA.hpp>
+
 // Allocate Kokkos Views for the data arrays
 void build_field(global_variables &globals) {
 
@@ -139,25 +141,29 @@ void build_field(global_variables &globals) {
     });
 
     // (t_xmin-2:t_xmax+2) inclusive
-    clover::par_ranged1(Range1d{0u, xrange}, [=] DEVICE_KERNEL(int id) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(
+        RAJA::TypedRangeSegment<int>(0u, xrange), [=] RAJA_DEVICE (int id ) {
       field.cellx[id] = 0.0;
       field.celldx[id] = 0.0;
     });
 
     // (t_ymin-2:t_ymax+2) inclusive
-    clover::par_ranged1(Range1d{0u, yrange}, [=] DEVICE_KERNEL(int id) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(
+        RAJA::TypedRangeSegment<int>(0u, yrange), [=] RAJA_DEVICE (int id ) {
       field.celly[id] = 0.0;
       field.celldy[id] = 0.0;
     });
 
     // (t_xmin-2:t_xmax+3) inclusive
-    clover::par_ranged1(Range1d{0u, xrange + 1}, [=] DEVICE_KERNEL(int id) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(
+        RAJA::TypedRangeSegment<int>(0u, xrange+1), [=] RAJA_DEVICE (int id ) {
       field.vertexx[id] = 0.0;
       field.vertexdx[id] = 0.0;
     });
 
     // (t_ymin-2:t_ymax+3) inclusive
-    clover::par_ranged1(Range1d{0u, yrange + 1}, [=] DEVICE_KERNEL(int id) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(
+        RAJA::TypedRangeSegment<int>(0u, yrange+1), [=] RAJA_DEVICE (int id ) {
       field.vertexy[id] = 0.0;
       field.vertexdy[id] = 0.0;
     });

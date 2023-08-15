@@ -55,6 +55,8 @@
   #define CLOVER_BUILTIN_LINE (0)
 #endif
 
+#define RAJA_BLOCK_SIZE 256
+
 namespace clover {
 
 struct CLResourceManager{
@@ -195,23 +197,23 @@ static void par_reduce(const F functor, const char *file = CLOVER_BUILTIN_FILE, 
 #endif
 }
 
-template <typename F> __global__ void par_ranged1d_kernel(Range1d r, F functor) {
-  const int gid = threadIdx.x + blockIdx.x * blockDim.x;
-  if (gid >= r.size) return;
-  functor(r.from + gid);
-}
+//template <typename F> __global__ void par_ranged1d_kernel(Range1d r, F functor) {
+//  const int gid = threadIdx.x + blockIdx.x * blockDim.x;
+//  if (gid >= r.size) return;
+//  functor(r.from + gid);
+//}
 
-template <size_t BLOCK = CLOVER_DEFAULT_BLOCK_SIZE, typename F>
-static void par_ranged1(const Range1d &r, const F functor, const char *file = CLOVER_BUILTIN_FILE, int loc = CLOVER_BUILTIN_LINE) {
-  int blocks = r.size < BLOCK ? 1 : BLOCK;
-  int threads = std::ceil(static_cast<double>(r.size) / blocks);
-  par_ranged1d_kernel<F><<<threads, blocks>>>(r, functor);
-#ifdef CLOVER_SYNC_ALL_KERNELS
-  if (auto result = cudaDeviceSynchronize(); result != cudaSuccess) {
-    std::cerr << "1D kernel at " << file << ":" << loc << " failed: " << cudaGetErrorString(result) << std::endl;
-  }
-#endif
-}
+//template <size_t BLOCK = CLOVER_DEFAULT_BLOCK_SIZE, typename F>
+//static void par_ranged1(const Range1d &r, const F functor, const char *file = CLOVER_BUILTIN_FILE, int loc = CLOVER_BUILTIN_LINE) {
+//  int blocks = r.size < BLOCK ? 1 : BLOCK;
+//  int threads = std::ceil(static_cast<double>(r.size) / blocks);
+//  par_ranged1d_kernel<F><<<threads, blocks>>>(r, functor);
+//#ifdef CLOVER_SYNC_ALL_KERNELS
+//  if (auto result = cudaDeviceSynchronize(); result != cudaSuccess) {
+//    std::cerr << "1D kernel at " << file << ":" << loc << " failed: " << cudaGetErrorString(result) << std::endl;
+//  }
+//#endif
+//}
 
 template <typename F> __global__ void par_ranged2d_kernel(Range2d r, F functor) {
   // linearise because of limits (65536) on the second and third dimension
