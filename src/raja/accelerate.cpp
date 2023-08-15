@@ -21,6 +21,8 @@
 #include "context.h"
 #include "timer.h"
 
+#include <RAJA/RAJA.hpp>
+
 //#define par_ranged2m(rg, f) \
 //{"KERNEL2D_START";                        \
 //                           \
@@ -46,7 +48,11 @@ void accelerate_kernel(int x_min, int x_max, int y_min, int y_max, double dt, cl
   //	Kokkos::MDRangePolicy <Kokkos::Rank<2>> policy({x_min + 1, y_min + 1},
   //	                                               {x_max + 1 + 2, y_max + 1 + 2});
 
-  clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 1 + 2, y_max + 1 + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
+  RAJA::TypedRangeSegment<int> row_Range(y_min + 1,  y_max + 1 + 2);
+  RAJA::TypedRangeSegment<int> col_Range(x_min + 1, x_max + 1 + 2);
+
+    RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range, row_Range),
+      [=] RAJA_DEVICE (const int i, const int j) {
     double stepbymass_s = halfdt / ((density0(i - 1, j - 1) * volume(i - 1, j - 1) + density0(i - 1, j + 0) * volume(i - 1, j + 0) +
                                      density0(i, j) * volume(i, j) + density0(i + 0, j - 1) * volume(i + 0, j - 1)) *
                                     0.25);

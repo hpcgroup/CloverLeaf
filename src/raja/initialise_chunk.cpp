@@ -76,7 +76,12 @@ void initialise_chunk(const int tile, global_variables &globals) {
     field.celldy[k] = dy;
   });
 
-  clover::par_ranged2(Range2d{0u, 0u, xrange1, yrange1}, [=] DEVICE_KERNEL(const int i, const int j) {
+  RAJA::TypedRangeSegment<int> row_Range(0, yrange1);
+  RAJA::TypedRangeSegment<int> col_Range(0, xrange1);
+
+////  clover::par_ranged2(Range2d{0u, 0u, xrange1, yrange1}, [=] DEVICE_KERNEL(const int i, const int j) {
+  RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range, row_Range),
+    [=] RAJA_DEVICE (int i, int j) {
     field.volume(i, j) = dx * dy;
     field.xarea(i, j) = field.celldy[j];
     field.yarea(i, j) = field.celldx[i];

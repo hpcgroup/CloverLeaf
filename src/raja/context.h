@@ -32,6 +32,7 @@
 #include <umpire/ResourceManager.hpp>
 #include <umpire/Umpire.hpp>
 #include "umpire/TypedAllocator.hpp"
+#include "RAJA/RAJA.hpp"
 
 #define CLOVER_DEFAULT_BLOCK_SIZE (256)
 #define DEVICE_KERNEL __host__ __device__
@@ -215,26 +216,26 @@ static void par_reduce(const F functor, const char *file = CLOVER_BUILTIN_FILE, 
 //#endif
 //}
 
-template <typename F> __global__ void par_ranged2d_kernel(Range2d r, F functor) {
-  // linearise because of limits (65536) on the second and third dimension
-  const int gid = threadIdx.x + blockIdx.x * blockDim.x;
-  if (gid >= r.sizeX * r.sizeY) return;
-  const auto x = r.fromX + (gid % r.sizeX);
-  const auto y = r.fromY + (gid / r.sizeX);
-  functor(x, y);
-}
+//template <typename F> __global__ void par_ranged2d_kernel(Range2d r, F functor) {
+//  // linearise because of limits (65536) on the second and third dimension
+//  const int gid = threadIdx.x + blockIdx.x * blockDim.x;
+//  if (gid >= r.sizeX * r.sizeY) return;
+//  const auto x = r.fromX + (gid % r.sizeX);
+//  const auto y = r.fromY + (gid / r.sizeX);
+//  functor(x, y);
+//}
 
-template <size_t BLOCK = CLOVER_DEFAULT_BLOCK_SIZE, typename F>
-static void par_ranged2(const Range2d &r, F functor, const char *file = CLOVER_BUILTIN_FILE, int loc = CLOVER_BUILTIN_LINE) {
-  int blocks = r.sizeX * r.sizeY < BLOCK ? 1 : BLOCK;
-  int threads = std::ceil(static_cast<double>(r.sizeX * r.sizeY) / blocks);
-  par_ranged2d_kernel<F><<<threads, blocks>>>(r, functor);
-#ifdef CLOVER_SYNC_ALL_KERNELS
-  if (auto result = cudaDeviceSynchronize(); result != cudaSuccess) {
-    std::cerr << "2D kernel at " << file << ":" << loc << " failed: " << cudaGetErrorString(result) << std::endl;
-  }
-#endif
-}
+//template <size_t BLOCK = CLOVER_DEFAULT_BLOCK_SIZE, typename F>
+//static void par_ranged2(const Range2d &r, F functor, const char *file = CLOVER_BUILTIN_FILE, int loc = CLOVER_BUILTIN_LINE) {
+//  int blocks = r.sizeX * r.sizeY < BLOCK ? 1 : BLOCK;
+//  int threads = std::ceil(static_cast<double>(r.sizeX * r.sizeY) / blocks);
+//  par_ranged2d_kernel<F><<<threads, blocks>>>(r, functor);
+//#ifdef CLOVER_SYNC_ALL_KERNELS
+//  if (auto result = cudaDeviceSynchronize(); result != cudaSuccess) {
+//    std::cerr << "2D kernel at " << file << ":" << loc << " failed: " << cudaGetErrorString(result) << std::endl;
+//  }
+//#endif
+//}
 
 template <typename T, int offset> struct reduce {
   __device__ inline static void run(T *array, T *out, T (*func)(T, T)) {
@@ -254,3 +255,9 @@ template <typename T> struct reduce<T, 0> {
 
 using clover::Range1d;
 using clover::Range2d;
+
+using KERNEL_EXEC_POL_CUDA = RAJA::KernelPolicy<RAJA::statement::CudaKernel<
+    RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
+      RAJA::statement::For<0, RAJA::cuda_thread_y_loop,
+        RAJA::statement::Lambda<0>>>>>;
+
