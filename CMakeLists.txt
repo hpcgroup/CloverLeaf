@@ -284,7 +284,7 @@ register_model(sycl-usm USE_SYCL_USM ${MODEL_SRC})
 
 #register_model(acc ACC fasten.hpp)
 # defining RAJA collides with the RAJA namespace so USE_RAJA
-#register_model(raja USE_RAJA fasten.hpp)
+register_model(raja USE_RAJA ${MODEL_SRC})
 #register_model(tbb TBB fasten.hpp)
 
 set(USAGE ON CACHE BOOL "Whether to print all custom flags for the selected model")
