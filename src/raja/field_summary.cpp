@@ -26,6 +26,8 @@
 #include <iomanip>
 #include <numeric>
 
+#include <RAJA/RAJA.hpp>
+
 //  @brief Fortran field summary kernel
 //  @author Wayne Gaudin
 //  @details The total mass, internal energy, kinetic energy and volume weighted
@@ -77,56 +79,43 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
     int xmax = t.info.t_xmax;
     int xmin = t.info.t_xmin;
     field_type &field = t.field;
+    using EXEC_POL3   = RAJA::cuda_exec<RAJA_BLOCK_SIZE>;
+    using REDUCE_POL3 = RAJA::cuda_reduce;
+
+    RAJA::ReduceSum<REDUCE_POL3, double> RAJAvol(0);
+    RAJA::ReduceSum<REDUCE_POL3, double> RAJAmass(0);
+    RAJA::ReduceSum<REDUCE_POL3, double> RAJAie(0);
+    RAJA::ReduceSum<REDUCE_POL3, double> RAJAke(0);
+    RAJA::ReduceSum<REDUCE_POL3, double> RAJApress(0);
 
     int range = (ymax - ymin + 1) * (xmax - xmin + 1);
-    clover::par_reduce<BLOCK, BLOCK>([=] __device__(int gid) {
-      __shared__ double vol[BLOCK];
-      __shared__ double mass[BLOCK];
-      __shared__ double ie[BLOCK];
-      __shared__ double ke[BLOCK];
-      __shared__ double press[BLOCK];
-      vol[threadIdx.x] = 0.0;
-      mass[threadIdx.x] = 0.0;
-      ie[threadIdx.x] = 0.0;
-      ke[threadIdx.x] = 0.0;
-      press[threadIdx.x] = 0.0;
+//    clover::par_reduce<BLOCK, BLOCK>([=] __device__(int gid) {
+    RAJA::forall<EXEC_POL3>(RAJA::TypedRangeSegment<int>(0, range),
+        [=] RAJA_DEVICE (int gid) {
+      int v = gid;
 
-      for (int v = gid; v < range; v += blockDim.x * gridDim.x) {
-        const size_t j = xmin + 1 + v % (xmax - xmin + 1);
-        const size_t k = ymin + 1 + v / (xmax - xmin + 1);
-        double vsqrd = 0.0;
-        for (size_t kv = k; kv <= k + 1; ++kv) {
-          for (size_t jv = j; jv <= j + 1; ++jv) {
-            vsqrd += 0.25 * (field.xvel0(jv, kv) * field.xvel0(jv, kv) + field.yvel0(jv, kv) * field.yvel0(jv, kv));
-          }
+      const size_t j = xmin + 1 + v % (xmax - xmin + 1);
+      const size_t k = ymin + 1 + v / (xmax - xmin + 1);
+      double vsqrd = 0.0;
+      for (size_t kv = k; kv <= k + 1; ++kv) {
+        for (size_t jv = j; jv <= j + 1; ++jv) {
+          vsqrd += 0.25 * (field.xvel0(jv, kv) * field.xvel0(jv, kv) + field.yvel0(jv, kv) * field.yvel0(jv, kv));
         }
-        double cell_vol = field.volume(j, k);
-        double cell_mass = cell_vol * field.density0(j, k);
-
-        vol[threadIdx.x] += cell_vol;
-        mass[threadIdx.x] += cell_mass;
-        ie[threadIdx.x] += cell_mass * field.energy0(j, k);
-        ke[threadIdx.x] += cell_mass * 0.5 * vsqrd;
-        press[threadIdx.x] += cell_vol * field.pressure(j, k);
       }
+      double cell_vol = field.volume(j, k);
+      double cell_mass = cell_vol * field.density0(j, k);
 
-      clover::reduce<double, BLOCK / 2>::run(vol, vol_buffer.data, [](auto l, auto r) { return l + r; });
-      clover::reduce<double, BLOCK / 2>::run(mass, mass_buffer.data, [](auto l, auto r) { return l + r; });
-      clover::reduce<double, BLOCK / 2>::run(ie, ie_buffer.data, [](auto l, auto r) { return l + r; });
-      clover::reduce<double, BLOCK / 2>::run(ke, ke_buffer.data, [](auto l, auto r) { return l + r; });
-      clover::reduce<double, BLOCK / 2>::run(press, press_buffer.data, [](auto l, auto r) { return l + r; });
+      RAJAvol += cell_vol;
+      RAJAmass += cell_mass;
+      RAJAie  += cell_mass * field.energy0(j, k);
+      RAJAke += cell_mass * 0.5 * vsqrd;
+      RAJApress += cell_vol * field.pressure(j, k);
     });
-    auto vol_host = vol_buffer.mirrored();
-    auto mass_host = mass_buffer.mirrored();
-    auto ie_host = ie_buffer.mirrored();
-    auto ke_host = ke_buffer.mirrored();
-    auto press_host = press_buffer.mirrored();
-    // FIXME
-//    vol = std::reduce(vol_host.begin(), vol_host.end(), vol, std::plus<>());
-//    mass = std::reduce(mass_host.begin(), mass_host.end(), mass, std::plus<>());
-//    ie = std::reduce(ie_host.begin(), ie_host.end(), ie, std::plus<>());
-//    ke = std::reduce(ke_host.begin(), ke_host.end(), ke, std::plus<>());
-//    press = std::reduce(press_host.begin(), press_host.end(), press, std::plus<>());
+    vol = RAJAvol.get();
+    mass = RAJAmass.get();
+    ie = RAJAie.get();
+    ke = RAJAke.get();
+    press = RAJApress.get();
   }
   vol_buffer.release();
   mass_buffer.release();
