@@ -44,6 +44,8 @@ macro(setup)
     # Add umpire to manage resource
     find_package(UMPIRE REQUIRED)
     register_link_library(umpire)
+    find_package(raja REQUIRED)
+    register_link_library(RAJA)
 
 
     if (MANAGED_ALLOC)

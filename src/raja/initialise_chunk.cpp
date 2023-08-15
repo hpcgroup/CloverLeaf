@@ -27,6 +27,8 @@
 #include "initialise_chunk.h"
 #include "context.h"
 
+#include <RAJA/RAJA.hpp>
+
 void initialise_chunk(const int tile, global_variables &globals) {
 
   double dx = (globals.config.grid.xmax - globals.config.grid.xmin) / (double)(globals.config.grid.x_cells);
@@ -47,12 +49,14 @@ void initialise_chunk(const int tile, global_variables &globals) {
   // Take a reference to the lowest structure, as Kokkos device cannot necessarily chase through the structure.
   field_type &field = globals.chunk.tiles[tile].field;
 
-  clover::par_ranged1(Range1d{0u, xrange}, [=] DEVICE_KERNEL(int j) {
+  RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(0u, xrange),
+      [=] RAJA_DEVICE (int j) {
     field.vertexx[j] = xmin + dx * (static_cast<int>(j) - 1 - x_min);
     field.vertexdx[j] = dx;
   });
 
-  clover::par_ranged1(Range1d{0u, yrange}, [=] DEVICE_KERNEL(int k) {
+  RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(0u, yrange),
+      [=] RAJA_DEVICE (int k) {
     field.vertexy[k] = ymin + dy * (static_cast<int>(k) - 1 - y_min);
     field.vertexdy[k] = dy;
   });
@@ -60,12 +64,14 @@ void initialise_chunk(const int tile, global_variables &globals) {
   const size_t xrange1 = (x_max + 2) - (x_min - 2) + 1;
   const size_t yrange1 = (y_max + 2) - (y_min - 2) + 1;
 
-  clover::par_ranged1(Range1d{0u, xrange1}, [=] DEVICE_KERNEL(int j) {
+  RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(0u, yrange),
+      [=] RAJA_DEVICE (int j) {
     field.cellx[j] = 0.5 * (field.vertexx[j] + field.vertexx[j + 1]);
     field.celldx[j] = dx;
   });
 
-  clover::par_ranged1(Range1d{0u, yrange1}, [=] DEVICE_KERNEL(int k) {
+  RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(0u, yrange1),
+      [=] RAJA_DEVICE (int k) {
     field.celly[k] = 0.5 * (field.vertexy[k] + field.vertexy[k + 1]);
     field.celldy[k] = dy;
   });

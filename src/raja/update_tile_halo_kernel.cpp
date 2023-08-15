@@ -20,6 +20,8 @@
 #include "update_tile_halo_kernel.h"
 #include "context.h"
 
+#include <RAJA/RAJA.hpp>
+
 //   @brief Fortran kernel to update the external halo cells in a chunk.
 //   @author Wayne Gaudin
 //   @details Updates halo cells for the required fields at the required depth
@@ -42,166 +44,154 @@ void update_tile_halo_l_kernel(
   // Density 0
   if (fields[field_density0] == 1) {
     // DO k=y_min-depth,y_max+depth
-
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             density0(x_min - j, k) = left_density0(left_xmax + 1 - j, k);
                           }
-                        }));
+                        });
   }
 
   // Density 1
   if (fields[field_density1] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             density1(x_min - j, k) = left_density1(left_xmax + 1 - j, k);
                           }
-                        }));
+                        });
   }
 
   // Energy 0
   if (fields[field_energy0] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             energy0(x_min - j, k) = left_energy0(left_xmax + 1 - j, k);
                           }
-                        }));
+                        });
   }
 
   // Energy 1
   if (fields[field_energy1] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             energy1(x_min - j, k) = left_energy1(left_xmax + 1 - j, k);
                           }
-                        }));
+                        });
   }
 
   // Pressure
   if (fields[field_pressure] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             pressure(x_min - j, k) = left_pressure(left_xmax + 1 - j, k);
                           }
-                        }));
+                        });
   }
 
   // Viscosity
   if (fields[field_viscosity] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             viscosity(x_min - j, k) = left_viscosity(left_xmax + 1 - j, k);
                           }
-                        }));
+                        });
   }
 
   // Soundspeed
   if (fields[field_soundspeed] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             soundspeed(x_min - j, k) = left_soundspeed(left_xmax + 1 - j, k);
                           }
-                        }));
+                        });
   }
 
   // XVEL 0
   if (fields[field_xvel0] == 1) {
     // DO k=y_min-depth,y_max+1+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             xvel0(x_min - j, k) = left_xvel0(left_xmax + 1 - j, k);
                           }
-                        }));
+                        });
   }
 
   // XVEL 1
   if (fields[field_xvel1] == 1) {
     // DO k=y_min-depth,y_max+1+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             xvel1(x_min - j, k) = left_xvel1(left_xmax + 1 - j, k);
                           }
-                        }));
+                        });
   }
 
   // YVEL 0
   if (fields[field_yvel0] == 1) {
     // DO k=y_min-depth,y_max+1+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             yvel0(x_min - j, k) = left_yvel0(left_xmax + 1 - j, k);
                           }
-                        }));
+                        });
   }
 
   // YVEL 1
   if (fields[field_yvel1] == 1) {
     // DO k=y_min-depth,y_max+1+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             yvel1(x_min - j, k) = left_yvel1(left_xmax + 1 - j, k);
                           }
-                        }));
+                        });
   }
 
   // VOL_FLUX_X
   if (fields[field_vol_flux_x] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             vol_flux_x(x_min - j, k) = left_vol_flux_x(left_xmax + 1 - j, k);
                           }
-                        }));
+                        });
   }
 
   // MASS_FLUX_X
   if (fields[field_mass_flux_x] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             mass_flux_x(x_min - j, k) = left_mass_flux_x(left_xmax + 1 - j, k);
                           }
-                        }));
-  }
-
-  // VOL_FLUX_Y
-  if (fields[field_vol_flux_y] == 1) {
-    // DO k=y_min-depth,y_max+1+depth
-
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, ([=] DEVICE_KERNEL(int k) {
-                          for (int j = 0; j < depth; ++j) {
-                            vol_flux_y(x_min - j, k) = left_vol_flux_y(left_xmax + 1 - j, k);
-                          }
-                        }));
+                        });
   }
 
   // MASS_FLUX_Y
   if (fields[field_mass_flux_y] == 1) {
     // DO k=y_min-depth,y_max+1+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             mass_flux_y(x_min - j, k) = left_mass_flux_y(left_xmax + 1 - j, k);
                           }
-                        }));
+                        });
   }
 }
 
@@ -221,165 +211,165 @@ void update_tile_halo_r_kernel(
   if (fields[field_density0] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             density0(x_max + 2 + j, k) = right_density0(right_xmin - 1 + 2 + j, k);
                           }
-                        }));
+                        });
   }
 
   // Density 1
   if (fields[field_density1] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             density1(x_max + 2 + j, k) = right_density1(right_xmin - 1 + 2 + j, k);
                           }
-                        }));
+                        });
   }
 
   // Energy 0
   if (fields[field_energy0] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             energy0(x_max + 2 + j, k) = right_energy0(right_xmin - 1 + 2 + j, k);
                           }
-                        }));
+                        });
   }
 
   // Energy 1
   if (fields[field_energy1] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             energy1(x_max + 2 + j, k) = right_energy1(right_xmin - 1 + 2 + j, k);
                           }
-                        }));
+                        });
   }
 
   // Pressure
   if (fields[field_pressure] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             pressure(x_max + 2 + j, k) = right_pressure(right_xmin - 1 + 2 + j, k);
                           }
-                        }));
+                        });
   }
 
   // Viscosity
   if (fields[field_viscosity] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             viscosity(x_max + 2 + j, k) = right_viscosity(right_xmin - 1 + 2 + j, k);
                           }
-                        }));
+                        });
   }
 
   // Soundspeed
   if (fields[field_soundspeed] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             soundspeed(x_max + 2 + j, k) = right_soundspeed(right_xmin - 1 + 2 + j, k);
                           }
-                        }));
+                        });
   }
 
   // XVEL 0
   if (fields[field_xvel0] == 1) {
     // DO k=y_min-depth,y_max+1+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             xvel0(x_max + 1 + 2 + j, k) = right_xvel0(right_xmin + 1 - 1 + 2 + j, k);
                           }
-                        }));
+                        });
   }
 
   // XVEL 1
   if (fields[field_xvel1] == 1) {
     // DO k=y_min-depth,y_max+1+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             xvel1(x_max + 1 + 2 + j, k) = right_xvel1(right_xmin + 1 - 1 + 2 + j, k);
                           }
-                        }));
+                        });
   }
 
   // YVEL 0
   if (fields[field_yvel0] == 1) {
     // DO k=y_min-depth,y_max+1+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             yvel0(x_max + 1 + 2 + j, k) = right_yvel0(right_xmin + 1 - 1 + 2 + j, k);
                           }
-                        }));
+                        });
   }
 
   // YVEL 1
   if (fields[field_yvel1] == 1) {
     // DO k=y_min-depth,y_max+1+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             yvel1(x_max + 1 + 2 + j, k) = right_yvel1(right_xmin + 1 - 1 + 2 + j, k);
                           }
-                        }));
+                        });
   }
 
   // VOL_FLUX_X
   if (fields[field_vol_flux_x] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             vol_flux_x(x_max + 1 + 2 + j, k) = right_vol_flux_x(right_xmin + 1 - 1 + 2 + j, k);
                           }
-                        }));
+                        });
   }
 
   // MASS_FLUX_X
   if (fields[field_mass_flux_x] == 1) {
     // DO k=y_min-depth,y_max+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             mass_flux_x(x_max + 1 + 2 + j, k) = right_mass_flux_x(right_xmin + 1 - 1 + 2 + j, k);
                           }
-                        }));
+                        });
   }
 
   // VOL_FLUX_Y
   if (fields[field_vol_flux_y] == 1) {
     // DO k=y_min-depth,y_max+1+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             vol_flux_y(x_max + 2 + j, k) = right_vol_flux_y(right_xmin - 1 + 2 + j, k);
                           }
-                        }));
+                        });
   }
 
   // MASS_FLUX_Y
   if (fields[field_mass_flux_y] == 1) {
     // DO k=y_min-depth,y_max+1+depth
 
-    clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, ([=] DEVICE_KERNEL(int k) {
+    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
                           for (int j = 0; j < depth; ++j) {
                             mass_flux_y(x_max + 2 + j, k) = right_mass_flux_y(right_xmin - 1 + 2 + j, k);
                           }
-                        }));
+                        });
   }
 }
 
@@ -406,8 +396,8 @@ void update_tile_halo_t_kernel(global_variables &, int x_min, int x_max, int y_m
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { density0(j, y_max + 2 + k) = top_density0(j, top_ymin - 1 + 2 + k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { density0(j, y_max + 2 + k) = top_density0(j, top_ymin - 1 + 2 + k); });
     }
   }
 
@@ -416,8 +406,8 @@ void update_tile_halo_t_kernel(global_variables &, int x_min, int x_max, int y_m
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { density1(j, y_max + 2 + k) = top_density1(j, top_ymin - 1 + 2 + k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { density1(j, y_max + 2 + k) = top_density1(j, top_ymin - 1 + 2 + k); });
     }
   }
 
@@ -426,8 +416,8 @@ void update_tile_halo_t_kernel(global_variables &, int x_min, int x_max, int y_m
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { energy0(j, y_max + 2 + k) = top_energy0(j, top_ymin - 1 + 2 + k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { energy0(j, y_max + 2 + k) = top_energy0(j, top_ymin - 1 + 2 + k); });
     }
   }
 
@@ -436,8 +426,8 @@ void update_tile_halo_t_kernel(global_variables &, int x_min, int x_max, int y_m
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { energy1(j, y_max + 2 + k) = top_energy1(j, top_ymin - 1 + 2 + k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { energy1(j, y_max + 2 + k) = top_energy1(j, top_ymin - 1 + 2 + k); });
     }
   }
 
@@ -446,8 +436,8 @@ void update_tile_halo_t_kernel(global_variables &, int x_min, int x_max, int y_m
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { pressure(j, y_max + 2 + k) = top_pressure(j, top_ymin - 1 + 2 + k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { pressure(j, y_max + 2 + k) = top_pressure(j, top_ymin - 1 + 2 + k); });
     }
   }
 
@@ -456,8 +446,8 @@ void update_tile_halo_t_kernel(global_variables &, int x_min, int x_max, int y_m
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { viscosity(j, y_max + 2 + k) = top_viscosity(j, top_ymin - 1 + 2 + k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { viscosity(j, y_max + 2 + k) = top_viscosity(j, top_ymin - 1 + 2 + k); });
     }
   }
 
@@ -466,8 +456,8 @@ void update_tile_halo_t_kernel(global_variables &, int x_min, int x_max, int y_m
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { soundspeed(j, y_max + 2 + k) = top_soundspeed(j, top_ymin - 1 + 2 + k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { soundspeed(j, y_max + 2 + k) = top_soundspeed(j, top_ymin - 1 + 2 + k); });
     }
   }
 
@@ -476,8 +466,8 @@ void update_tile_halo_t_kernel(global_variables &, int x_min, int x_max, int y_m
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+1+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { xvel0(j, y_max + 1 + 2 + k) = top_xvel0(j, top_ymin + 1 - 1 + 2 + k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + 1 + depth + 2),
+                          [=] RAJA_DEVICE (int j) { xvel0(j, y_max + 1 + 2 + k) = top_xvel0(j, top_ymin + 1 - 1 + 2 + k); });
     }
   }
 
@@ -486,8 +476,8 @@ void update_tile_halo_t_kernel(global_variables &, int x_min, int x_max, int y_m
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+1+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { xvel1(j, y_max + 1 + 2 + k) = top_xvel1(j, top_ymin + 1 - 1 + 2 + k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + 1 + depth + 2),
+                          [=] RAJA_DEVICE (int j) { xvel1(j, y_max + 1 + 2 + k) = top_xvel1(j, top_ymin + 1 - 1 + 2 + k); });
     }
   }
 
@@ -496,8 +486,8 @@ void update_tile_halo_t_kernel(global_variables &, int x_min, int x_max, int y_m
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+1+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { yvel0(j, y_max + 1 + 2 + k) = top_yvel0(j, top_ymin + 1 - 1 + 2 + k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + 1 + depth + 2),
+                          [=] RAJA_DEVICE (int j) { yvel0(j, y_max + 1 + 2 + k) = top_yvel0(j, top_ymin + 1 - 1 + 2 + k); });
     }
   }
 
@@ -506,8 +496,8 @@ void update_tile_halo_t_kernel(global_variables &, int x_min, int x_max, int y_m
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+1+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { yvel1(j, y_max + 1 + 2 + k) = top_yvel1(j, top_ymin + 1 - 1 + 2 + k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + 1 + depth + 2),
+                          [=] RAJA_DEVICE (int j) { yvel1(j, y_max + 1 + 2 + k) = top_yvel1(j, top_ymin + 1 - 1 + 2 + k); });
     }
   }
 
@@ -516,8 +506,8 @@ void update_tile_halo_t_kernel(global_variables &, int x_min, int x_max, int y_m
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+1+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { vol_flux_x(j, y_max + 2 + k) = top_vol_flux_x(j, top_ymin - 1 + 2 + k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + 1 + depth + 2),
+                          [=] RAJA_DEVICE (int j) { vol_flux_x(j, y_max + 2 + k) = top_vol_flux_x(j, top_ymin - 1 + 2 + k); });
     }
   }
 
@@ -526,8 +516,8 @@ void update_tile_halo_t_kernel(global_variables &, int x_min, int x_max, int y_m
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+1+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { mass_flux_x(j, y_max + 2 + k) = top_mass_flux_x(j, top_ymin - 1 + 2 + k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + 1 + depth + 2),
+                          [=] RAJA_DEVICE (int j) { mass_flux_x(j, y_max + 2 + k) = top_mass_flux_x(j, top_ymin - 1 + 2 + k); });
     }
   }
 
@@ -536,8 +526,8 @@ void update_tile_halo_t_kernel(global_variables &, int x_min, int x_max, int y_m
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { vol_flux_y(j, y_max + 1 + 2 + k) = top_vol_flux_y(j, top_ymin + 1 - 1 + 2 + k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { vol_flux_y(j, y_max + 1 + 2 + k) = top_vol_flux_y(j, top_ymin + 1 - 1 + 2 + k); });
     }
   }
 
@@ -546,8 +536,8 @@ void update_tile_halo_t_kernel(global_variables &, int x_min, int x_max, int y_m
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { mass_flux_y(j, y_max + 1 + 2 + k) = top_mass_flux_y(j, top_ymin + 1 - 1 + 2 + k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { mass_flux_y(j, y_max + 1 + 2 + k) = top_mass_flux_y(j, top_ymin + 1 - 1 + 2 + k); });
     }
   }
 }
@@ -569,8 +559,8 @@ void update_tile_halo_b_kernel(
     for (int k = 0; k < depth; ++k) {
       //  DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { density0(j, y_min - k) = bottom_density0(j, bottom_ymax + 1 - k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { density0(j, y_min - k) = bottom_density0(j, bottom_ymax + 1 - k); });
     }
   }
 
@@ -579,8 +569,8 @@ void update_tile_halo_b_kernel(
     for (int k = 0; k < depth; ++k) {
       //  DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { density1(j, y_min - k) = bottom_density1(j, bottom_ymax + 1 - k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { density1(j, y_min - k) = bottom_density1(j, bottom_ymax + 1 - k); });
     }
   }
 
@@ -589,8 +579,8 @@ void update_tile_halo_b_kernel(
     for (int k = 0; k < depth; ++k) {
       //  DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { energy0(j, y_min - k) = bottom_energy0(j, bottom_ymax + 1 - k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { energy0(j, y_min - k) = bottom_energy0(j, bottom_ymax + 1 - k); });
     }
   }
 
@@ -599,8 +589,8 @@ void update_tile_halo_b_kernel(
     for (int k = 0; k < depth; ++k) {
       //  DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { energy1(j, y_min - k) = bottom_energy1(j, bottom_ymax + 1 - k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { energy1(j, y_min - k) = bottom_energy1(j, bottom_ymax + 1 - k); });
     }
   }
 
@@ -609,8 +599,8 @@ void update_tile_halo_b_kernel(
     for (int k = 0; k < depth; ++k) {
       //  DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { pressure(j, y_min - k) = bottom_pressure(j, bottom_ymax + 1 - k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { pressure(j, y_min - k) = bottom_pressure(j, bottom_ymax + 1 - k); });
     }
   }
 
@@ -619,8 +609,8 @@ void update_tile_halo_b_kernel(
     for (int k = 0; k < depth; ++k) {
       //  DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { viscosity(j, y_min - k) = bottom_viscosity(j, bottom_ymax + 1 - k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { viscosity(j, y_min - k) = bottom_viscosity(j, bottom_ymax + 1 - k); });
     }
   }
 
@@ -629,8 +619,8 @@ void update_tile_halo_b_kernel(
     for (int k = 0; k < depth; ++k) {
       //  DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { soundspeed(j, y_min - k) = bottom_soundspeed(j, bottom_ymax + 1 - k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { soundspeed(j, y_min - k) = bottom_soundspeed(j, bottom_ymax + 1 - k); });
     }
   }
 
@@ -639,8 +629,8 @@ void update_tile_halo_b_kernel(
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+1+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { xvel0(j, y_min - k) = bottom_xvel0(j, bottom_ymax + 1 - k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + 1 + depth + 2),
+                          [=] RAJA_DEVICE (int j) { xvel0(j, y_min - k) = bottom_xvel0(j, bottom_ymax + 1 - k); });
     }
   }
 
@@ -649,8 +639,8 @@ void update_tile_halo_b_kernel(
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+1+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { xvel1(j, y_min - k) = bottom_xvel1(j, bottom_ymax + 1 - k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + 1 + depth + 2),
+                          [=] RAJA_DEVICE (int j) { xvel1(j, y_min - k) = bottom_xvel1(j, bottom_ymax + 1 - k); });
     }
   }
 
@@ -659,8 +649,8 @@ void update_tile_halo_b_kernel(
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+1+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { yvel0(j, y_min - k) = bottom_yvel0(j, bottom_ymax + 1 - k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + 1 + depth + 2),
+                          [=] RAJA_DEVICE (int j) { yvel0(j, y_min - k) = bottom_yvel0(j, bottom_ymax + 1 - k); });
     }
   }
 
@@ -669,8 +659,8 @@ void update_tile_halo_b_kernel(
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+1+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { yvel1(j, y_min - k) = bottom_yvel1(j, bottom_ymax + 1 - k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + 1 + depth + 2),
+                          [=] RAJA_DEVICE (int j) { yvel1(j, y_min - k) = bottom_yvel1(j, bottom_ymax + 1 - k); });
     }
   }
 
@@ -679,8 +669,8 @@ void update_tile_halo_b_kernel(
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+1+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { vol_flux_x(j, y_min - k) = bottom_vol_flux_x(j, bottom_ymax + 1 - k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + 1 + depth + 2),
+                          [=] RAJA_DEVICE (int j) { vol_flux_x(j, y_min - k) = bottom_vol_flux_x(j, bottom_ymax + 1 - k); });
     }
   }
 
@@ -689,8 +679,8 @@ void update_tile_halo_b_kernel(
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+1+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { mass_flux_x(j, y_min - k) = bottom_mass_flux_x(j, bottom_ymax + 1 - k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + 1 + depth + 2),
+                          [=] RAJA_DEVICE (int j) { mass_flux_x(j, y_min - k) = bottom_mass_flux_x(j, bottom_ymax + 1 - k); });
     }
   }
 
@@ -699,8 +689,8 @@ void update_tile_halo_b_kernel(
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { vol_flux_y(j, y_min - k) = bottom_vol_flux_y(j, bottom_ymax + 1 - k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { vol_flux_y(j, y_min - k) = bottom_vol_flux_y(j, bottom_ymax + 1 - k); });
     }
   }
 
@@ -709,8 +699,8 @@ void update_tile_halo_b_kernel(
     for (int k = 0; k < depth; ++k) {
       // DO j=x_min-depth, x_max+depth
 
-      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2},
-                          ([=] DEVICE_KERNEL(int j) { mass_flux_y(j, y_min - k) = bottom_mass_flux_y(j, bottom_ymax + 1 - k); }));
+      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(x_min - depth +1, x_max + depth + 2),
+                          [=] RAJA_DEVICE (int j) { mass_flux_y(j, y_min - k) = bottom_mass_flux_y(j, bottom_ymax + 1 - k); });
     }
   }
 }
