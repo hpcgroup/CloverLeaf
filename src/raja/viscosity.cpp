@@ -21,6 +21,8 @@
 #include "context.h"
 #include <cmath>
 
+#include <RAJA/RAJA.hpp>
+
 //  @brief Fortran viscosity kernel.
 //  @author Wayne Gaudin
 //  @details Calculates an artificial viscosity using the Wilkin's method to
@@ -33,7 +35,12 @@ void viscosity_kernel(int x_min, int x_max, int y_min, int y_max, clover::Buffer
 
   // DO k=y_min,y_max
   //   DO j=x_min,x_max
-  clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 2, y_max + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
+  // clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 2, y_max + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
+  const RAJA::TypedRangeSegment<int> row_Range1(y_min + 1,  y_max + 2);
+  const RAJA::TypedRangeSegment<int> col_Range1(x_min + 1,  x_max + 2);
+  RAJA::kernel<KERNEL_EXEC_POL_CUDA>(RAJA::make_tuple(col_Range1, row_Range1),
+      [=] RAJA_DEVICE (const int i, const int j) {
+
     double ugrad = (xvel0(i + 1, j + 0) + xvel0(i + 1, j + 1)) - (xvel0(i, j) + xvel0(i + 0, j + 1));
 
     double vgrad = (yvel0(i + 0, j + 1) + yvel0(i + 1, j + 1)) - (yvel0(i, j) + yvel0(i + 1, j + 0));

@@ -27,6 +27,8 @@
 #include "update_halo.h"
 #include <cmath>
 
+#include <RAJA/RAJA.hpp>
+
 //  @brief Fortran PdV kernel.
 //  @author Wayne Gaudin
 //  @details Calculates the change in energy and density in a cell using the
@@ -43,10 +45,12 @@ void PdV_kernel(bool predict, int x_min, int x_max, int y_min, int y_max, double
   // DO k=y_min,y_max
   //   DO j=x_min,x_max
   clover::Range2d policy(x_min + 1, y_min + 1, x_max + 2, y_max + 2);
+  RAJA::TypedRangeSegment<int> row_Range(y_min + 1,  y_max + 2);
+  RAJA::TypedRangeSegment<int> col_Range(x_min + 1, x_max + 2);
 
   if (predict) {
-
-    clover::par_ranged2(policy, [=] DEVICE_KERNEL(const int i, const int j) {
+    RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range, row_Range),
+      [=] RAJA_DEVICE (const int i, const int j) {
       double left_flux = (xarea(i, j) * (xvel0(i, j) + xvel0(i + 0, j + 1) + xvel0(i, j) + xvel0(i + 0, j + 1))) * 0.25 * dt * 0.5;
       double right_flux =
           (xarea(i + 1, j + 0) * (xvel0(i + 1, j + 0) + xvel0(i + 1, j + 1) + xvel0(i + 1, j + 0) + xvel0(i + 1, j + 1))) * 0.25 * dt * 0.5;
@@ -62,8 +66,8 @@ void PdV_kernel(bool predict, int x_min, int x_max, int y_min, int y_max, double
     });
 
   } else {
-
-    clover::par_ranged2(policy, [=] DEVICE_KERNEL(const int i, const int j) {
+    RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range, row_Range),
+      [=] RAJA_DEVICE (const int i, const int j) {
       double left_flux = (xarea(i, j) * (xvel0(i, j) + xvel0(i + 0, j + 1) + xvel1(i, j) + xvel1(i + 0, j + 1))) * 0.25 * dt;
       double right_flux =
           (xarea(i + 1, j + 0) * (xvel0(i + 1, j + 0) + xvel0(i + 1, j + 1) + xvel1(i + 1, j + 0) + xvel1(i + 1, j + 1))) * 0.25 * dt;

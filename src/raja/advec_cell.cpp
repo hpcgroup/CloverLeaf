@@ -21,6 +21,8 @@
 #include "context.h"
 #include <cmath>
 
+#include <RAJA/RAJA.hpp>
+
 //  @brief Fortran cell advection kernel.
 //  @author Wayne Gaudin
 //  @details Performs a second order advective remap using van-Leer limiting
@@ -39,18 +41,21 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
     // DO k=y_min-2,y_max+2
     //   DO j=x_min-2,x_max+2
 
-    const clover::Range2d policy(x_min - 2 + 1, y_min - 2 + 1, x_max + 2 + 2, y_max + 2 + 2);
+//    const clover::Range2d policy(x_min - 2 + 1, y_min - 2 + 1, x_max + 2 + 2, y_max + 2 + 2);
+    const RAJA::TypedRangeSegment<int> row_Range(y_min - 2 + 1,  y_max + 2 + 2);
+    const RAJA::TypedRangeSegment<int> col_Range(x_min - 2 + 1,  x_max + 2 + 2);
 
     if (sweep_number == 1) {
 
-      clover::par_ranged2(policy, [=] DEVICE_KERNEL(const int i, const int j) {
+      RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range, row_Range),
+        [=] RAJA_DEVICE (const int i, const int j) {
         pre_vol(i, j) = volume(i, j) + (vol_flux_x(i + 1, j + 0) - vol_flux_x(i, j) + vol_flux_y(i + 0, j + 1) - vol_flux_y(i, j));
         post_vol(i, j) = pre_vol(i, j) - (vol_flux_x(i + 1, j + 0) - vol_flux_x(i, j));
       });
 
     } else {
-
-      clover::par_ranged2(policy, [=] DEVICE_KERNEL(const int i, const int j) {
+      RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range, row_Range),
+        [=] RAJA_DEVICE (const int i, const int j) {
         pre_vol(i, j) = volume(i, j) + vol_flux_x(i + 1, j + 0) - vol_flux_x(i, j);
         post_vol(i, j) = volume(i, j);
       });
@@ -58,7 +63,11 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
 
     // DO k=y_min,y_max
     //   DO j=x_min,x_max+2
-    clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 2 + 2, y_max + 2}, [=] DEVICE_KERNEL(const int x, const int y) {
+    const RAJA::TypedRangeSegment<int> row_Range1(y_min + 1,  y_max + 2);
+    const RAJA::TypedRangeSegment<int> col_Range1(x_min + 1,  x_max + 2 + 2);
+
+    RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range1, row_Range1),
+        [=] RAJA_DEVICE (const int x, const int y) {
       int upwind, donor, downwind, dif;
       double sigmat, sigma3, sigma4, sigmav,  sigmam, diffuw, diffdw, limiter, wind;
 
@@ -114,8 +123,8 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
 
     // DO k=y_min,y_max
     //   DO j=x_min,x_max
-
-    clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 2, y_max + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
+    RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range1, row_Range1),
+        [=] RAJA_DEVICE (const int i, const int j) {
       double pre_mass_s = density1(i, j) * pre_vol(i, j);
       double post_mass_s = pre_mass_s + mass_flux_x(i, j) - mass_flux_x(i + 1, j + 0);
       double post_ener_s = (energy1(i, j) * pre_mass_s + ener_flux(i, j) - ener_flux(i + 1, j + 0)) / post_mass_s;
@@ -128,18 +137,23 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
 
     // DO k=y_min-2,y_max+2
     //   DO j=x_min-2,x_max+2
-    clover::Range2d policy(x_min - 2 + 1, y_min - 2 + 1, x_max + 2 + 2, y_max + 2 + 2);
-
+//    clover::Range2d policy(x_min - 2 + 1, y_min - 2 + 1, x_max + 2 + 2, y_max + 2 + 2);
+    const RAJA::TypedRangeSegment<int> row_Range1(y_min - 2 + 1,  y_max + 2);
+    const RAJA::TypedRangeSegment<int> col_Range1(x_min - 2 + 1,  x_max + 2 + 2);
+ 
     if (sweep_number == 1) {
 
-      clover::par_ranged2(policy, [=] DEVICE_KERNEL(const int i, const int j) {
+//      clover::par_ranged2(policy, [=] DEVICE_KERNEL(const int i, const int j) {
+      RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range1, row_Range1),
+        [=] RAJA_DEVICE (const int i, const int j) {
         pre_vol(i, j) = volume(i, j) + (vol_flux_y(i + 0, j + 1) - vol_flux_y(i, j) + vol_flux_x(i + 1, j + 0) - vol_flux_x(i, j));
         post_vol(i, j) = pre_vol(i, j) - (vol_flux_y(i + 0, j + 1) - vol_flux_y(i, j));
       });
 
     } else {
-
-      clover::par_ranged2(policy, [=] DEVICE_KERNEL(const int i, const int j) {
+//      clover::par_ranged2(policy, [=] DEVICE_KERNEL(const int i, const int j) {
+      RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range1, row_Range1),
+        [=] RAJA_DEVICE (const int i, const int j) {
         pre_vol(i, j) = volume(i, j) + vol_flux_y(i + 0, j + 1) - vol_flux_y(i, j);
         post_vol(i, j) = volume(i, j);
       });
@@ -147,7 +161,12 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
 
     // DO k=y_min,y_max+2
     //   DO j=x_min,x_max
-    clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 2, y_max + 2 + 2}, [=] DEVICE_KERNEL(const int x, const int y) {
+    const RAJA::TypedRangeSegment<int> row_Range2(y_min + 1,  y_max + 2 + 2);
+    const RAJA::TypedRangeSegment<int> col_Range2(x_min + 1,  x_max  + 2);
+
+//    clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 2, y_max + 2 + 2}, [=] DEVICE_KERNEL(const int x, const int y) {
+    RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range2, row_Range2),
+        [=] RAJA_DEVICE (const int x, const int y) {
       int upwind, donor, downwind, dif;
       double sigmat, sigma3, sigma4, sigmav,  sigmam, diffuw, diffdw, limiter, wind;
 
@@ -202,7 +221,11 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
 
     // DO k=y_min,y_max
     //   DO j=x_min,x_max
-    clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 2, y_max + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
+    const RAJA::TypedRangeSegment<int> row_Range3(y_min + 1,  y_max + 2);
+    const RAJA::TypedRangeSegment<int> col_Range3(x_min + 1,  x_max + 2);
+//    clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 2, y_max + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
+     RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range3, row_Range3),
+        [=] RAJA_DEVICE (const int i, const int j) {
       double pre_mass_s = density1(i, j) * pre_vol(i, j);
       double post_mass_s = pre_mass_s + mass_flux_y(i, j) - mass_flux_y(i + 0, j + 1);
       double post_ener_s = (energy1(i, j) * pre_mass_s + ener_flux(i, j) - ener_flux(i + 0, j + 1)) / post_mass_s;
