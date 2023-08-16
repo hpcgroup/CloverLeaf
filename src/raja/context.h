@@ -183,20 +183,20 @@ template <typename T> struct Buffer2D {
 
 template <typename T> using StagingBuffer1D = T*;
 
-template <typename F> __global__ void par_reduce_kernel(F functor) {
-  const int gid = threadIdx.x + blockIdx.x * blockDim.x;
-  functor(gid);
-}
-
-template <size_t THREADS, size_t BLOCK, typename F>
-static void par_reduce(const F functor, const char *file = CLOVER_BUILTIN_FILE, int loc = CLOVER_BUILTIN_LINE) {
-  par_reduce_kernel<F><<<THREADS, BLOCK>>>(functor);
-#ifdef CLOVER_SYNC_ALL_KERNELS
-  if (auto result = cudaDeviceSynchronize(); result != cudaSuccess) {
-    std::cerr << "Reduce kernel at " << file << ":" << loc << " failed: " << cudaGetErrorString(result) << std::endl;
-  }
-#endif
-}
+//template <typename F> __global__ void par_reduce_kernel(F functor) {
+//  const int gid = threadIdx.x + blockIdx.x * blockDim.x;
+//  functor(gid);
+//}
+//
+//template <size_t THREADS, size_t BLOCK, typename F>
+//static void par_reduce(const F functor, const char *file = CLOVER_BUILTIN_FILE, int loc = CLOVER_BUILTIN_LINE) {
+//  par_reduce_kernel<F><<<THREADS, BLOCK>>>(functor);
+//#ifdef CLOVER_SYNC_ALL_KERNELS
+//  if (auto result = cudaDeviceSynchronize(); result != cudaSuccess) {
+//    std::cerr << "Reduce kernel at " << file << ":" << loc << " failed: " << cudaGetErrorString(result) << std::endl;
+//  }
+//#endif
+//}
 
 //template <typename F> __global__ void par_ranged1d_kernel(Range1d r, F functor) {
 //  const int gid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -237,19 +237,19 @@ static void par_reduce(const F functor, const char *file = CLOVER_BUILTIN_FILE, 
 //#endif
 //}
 
-template <typename T, int offset> struct reduce {
-  __device__ inline static void run(T *array, T *out, T (*func)(T, T)) {
-    if (offset > 16) __syncthreads(); // only need to sync if not working within a warp
-    if (threadIdx.x < offset) {       // only continue if it's in the lower half
-      array[threadIdx.x] = func(array[threadIdx.x], array[threadIdx.x + offset]);
-      reduce<T, offset / 2>::run(array, out, func);
-    }
-  }
-};
-
-template <typename T> struct reduce<T, 0> {
-  __device__ inline static void run(T *array, T *out, T (*)(T, T)) { out[blockIdx.x] = array[0]; }
-};
+//template <typename T, int offset> struct reduce {
+//  __device__ inline static void run(T *array, T *out, T (*func)(T, T)) {
+//    if (offset > 16) __syncthreads(); // only need to sync if not working within a warp
+//    if (threadIdx.x < offset) {       // only continue if it's in the lower half
+//      array[threadIdx.x] = func(array[threadIdx.x], array[threadIdx.x + offset]);
+//      reduce<T, offset / 2>::run(array, out, func);
+//    }
+//  }
+//};
+//
+//template <typename T> struct reduce<T, 0> {
+//  __device__ inline static void run(T *array, T *out, T (*)(T, T)) { out[blockIdx.x] = array[0]; }
+//};
 
 } // namespace clover
 
