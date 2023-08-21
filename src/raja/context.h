@@ -256,8 +256,21 @@ template <typename T> using StagingBuffer1D = T*;
 using clover::Range1d;
 using clover::Range2d;
 
-using KERNEL_EXEC_POL_CUDA = RAJA::KernelPolicy<RAJA::statement::CudaKernel<
-    RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
-      RAJA::statement::For<0, RAJA::cuda_thread_y_loop,
-        RAJA::statement::Lambda<0>>>>>;
+//using KERNEL_EXEC_POL_CUDA = RAJA::KernelPolicy<RAJA::statement::CudaKernel<
+//    RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
+//      RAJA::statement::For<0, RAJA::cuda_thread_y_loop,
+//        RAJA::statement::Lambda<0>>>>>;
 
+using KERNEL_EXEC_POL_CUDA  = RAJA::KernelPolicy<
+    RAJA::statement::CudaKernel<
+        RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::cuda_block_y_direct,
+          RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::cuda_block_x_direct,
+            RAJA::statement::For<1, RAJA::cuda_thread_y_direct,
+              RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
+                RAJA::statement::Lambda<0>
+              >
+            >
+          >
+        >
+      >
+    >;
