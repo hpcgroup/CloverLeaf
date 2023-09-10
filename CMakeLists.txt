@@ -155,7 +155,7 @@ endif ()
 
 # setup some defaults flags for everything
 set(DEFAULT_DEBUG_CXX_FLAGS -Wall -O2)
-set(DEFAULT_RELEASE_CXX_FLAGS -Wall -O3 -march=native)
+set(DEFAULT_RELEASE_CXX_FLAGS -Wall -O3)
 
 macro(hint_flag FLAG DESCRIPTION)
     if (NOT DEFINED ${FLAG})
