@@ -170,7 +170,7 @@ void advec_mom_kernel(int x_min, int x_max, int y_min, int y_max, clover::Buffer
       // DO k=y_min-1,y_max+2
       //   DO j=x_min,x_max+1
       // clover::par_ranged2(Range2d{x_min + 1, y_min - 1 + 1, x_max + 1 + 2, y_max + 2 + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
-      const RAJA::TypedRangeSegment<int> row_Range6(y_min - 2 + 1,  y_max + 2 + 2);
+      const RAJA::TypedRangeSegment<int> row_Range6(y_min - 1 + 1,  y_max + 2 + 2);
       const RAJA::TypedRangeSegment<int> col_Range6(x_min + 1,  x_max + 1 + 2);
       RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range6, row_Range6),
         [=] RAJA_DEVICE (const int i, const int j) {
