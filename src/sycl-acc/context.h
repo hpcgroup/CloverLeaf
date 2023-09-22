@@ -19,12 +19,12 @@
 
 #pragma once
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <vector>
 
 #include "shared.h"
 
-using namespace cl;
+using namespace sycl;
 
 using sycl::accessor;
 using sycl::buffer;
@@ -96,9 +96,9 @@ template <typename T> struct Buffer1D {
 
   template <sycl::access::mode mode> inline T *access_ptr(size_t count) {
 
-    return sycl::host_accessor<T, 1, mode>{buffer, count}.get_pointer();
+//    return sycl::host_accessor<T, 1, mode>{buffer, count}.get_pointer();
 
-//    return buffer.get_host_access(count).get_pointer();
+    return buffer.get_host_access(count).get_pointer();
 //    return buffer.template get_access<mode>(count).get_pointer();
   }
 
