@@ -6,8 +6,7 @@ register_flag_optional(CMAKE_CXX_COMPILER
 register_flag_optional(CMAKE_CUDA_COMPILER "Path to the CUDA nvcc compiler" "")
 
 # XXX we may want to drop this eventually and use CMAKE_CUDA_ARCHITECTURES directly
-register_flag_optional(CUDA_ARCH
-        "Nvidia architecture, will be passed in via `-arch=` (e.g `sm_70`) for nvcc" "sm_70")
+register_flag_required(DEVICE_ARCH "Nvidia architecture, will be passed in via `-arch=` (e.g `sm_70`) for nvcc")
 
 register_flag_optional(CUDA_EXTRA_FLAGS
         "Additional CUDA flags passed to nvcc, this is appended after `CUDA_ARCH`"
@@ -39,7 +38,7 @@ macro(setup)
       set(CMAKE_CUDA_STANDARD 17)
       set(CMAKE_CXX_STANDARD 17)
       enable_language(CUDA)
-      set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -std=c++17 -forward-unknown-to-host-compiler -arch=${CUDA_ARCH} -extended-lambda -restrict -keep ${CUDA_EXTRA_FLAGS}")
+      set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -std=c++17 -forward-unknown-to-host-compiler -arch=${DEVICE_ARCH} -extended-lambda -restrict -keep ${CUDA_EXTRA_FLAGS}")
       # -use_fast_math
       # CMake defaults to -O2 for CUDA at Release, let's wipe that and use the global RELEASE_FLAG
       # appended later
@@ -66,10 +65,12 @@ endmacro()
 macro(setup_target NAME)
     # Treat everything as CUDA source
     get_target_property(PROJECT_SRC "${NAME}" SOURCES)
-    if (${RAJA_BACK_END} STREQUAL "CUDA")
+  if (${RAJA_BACK_END} STREQUAL "CUDA")
     foreach (SRC ${PROJECT_SRC})
         set_source_files_properties("${SRC}" PROPERTIES LANGUAGE CUDA)
     endforeach ()
     set_property(TARGET ${NAME} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+  elseif (${RAJA_BACK_END} STREQUAL "HIP")
+      set_property(TARGET ${NAME} PROPERTY HIP_ARCHITECTURES ${DEVICE_ARCH})
   endif()
 endmacro()
