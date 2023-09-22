@@ -57,11 +57,11 @@ model create_context(bool silent, const std::vector<std::string> &args) {
     std::string name{};
   };
   int count = 0;
-  clover::checkError(cudaGetDeviceCount(&count));
+  clover::checkError(rajaGetDeviceCount(&count));
   std::vector<Device> devices(count);
   for (int i = 0; i < count; ++i) {
-    cudaDeviceProp props{};
-    clover::checkError(cudaGetDeviceProperties(&props, i));
+    rajaDeviceProp props{};
+    clover::checkError(rajaGetDeviceProperties(&props, i));
     devices[i] = {i, std::string(props.name) + " (" +                                        //
                          std::to_string(props.totalGlobalMem / 1024 / 1024) + "MB;" +        //
                          "sm_" + std::to_string(props.major) + std::to_string(props.minor) + //
@@ -69,15 +69,15 @@ model create_context(bool silent, const std::vector<std::string> &args) {
   }
   auto [device, parsed] = list_and_parse<Device>(
       silent, devices, [](auto &d) { return d.name; }, args);
-  clover::checkError(cudaSetDevice(device.id));
+  clover::checkError(rajaSetDevice(device.id));
   return model{clover::context{}, "CUDA", true, parsed};
 }
 
 void report_context(const clover::context &) {
   int device = -1;
-  clover::checkError(cudaGetDevice(&device));
-  cudaDeviceProp props{};
-  clover::checkError(cudaGetDeviceProperties(&props, device));
+  clover::checkError(rajaGetDevice(&device));
+  rajaDeviceProp props{};
+  clover::checkError(rajaGetDeviceProperties(&props, device));
   std::cout << " - Device: " //
             << props.name << " (" << (props.totalGlobalMem / 1024 / 1024) << "MB;"
             << "sm_" << props.major << props.minor << ")" << std::endl;

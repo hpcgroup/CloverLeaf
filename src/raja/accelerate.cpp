@@ -84,7 +84,7 @@ void accelerate(global_variables &globals) {
   }
 
   if (globals.profiler_on) {
-    clover::checkError(cudaDeviceSynchronize());
+    clover::checkError(rajaDeviceSynchronize());
     globals.profiler.acceleration += timer() - kernel_time;
   }
 }

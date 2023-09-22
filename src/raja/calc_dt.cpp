@@ -57,12 +57,10 @@ void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, 
   // y = y_min + 1  |  y_max + 2
 
   int range = (xEnd - xStart) * (yEnd - yStart);
-  using EXEC_POL3   = RAJA::cuda_exec<RAJA_BLOCK_SIZE>;
-  using reduce_policy = RAJA::cuda_reduce;
   RAJA::ReduceMin<reduce_policy, double> raja_min(std::numeric_limits<int>::max());
   RAJA::RangeSegment arange(0, range);
 
-  RAJA::forall<EXEC_POL3>(arange, [=] RAJA_DEVICE (int v) {
+  RAJA::forall<raja_default_policy>(arange, [=] RAJA_DEVICE (int v) {
       const auto i = xStart + (v % sizeX);
       const auto j = yStart + (v / sizeX);
 

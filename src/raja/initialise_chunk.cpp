@@ -49,13 +49,13 @@ void initialise_chunk(const int tile, global_variables &globals) {
   // Take a reference to the lowest structure, as Kokkos device cannot necessarily chase through the structure.
   field_type &field = globals.chunk.tiles[tile].field;
 
-  RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(0u, xrange),
+  RAJA::forall<raja_default_policy>(RAJA::TypedRangeSegment<int>(0u, xrange),
       [=] RAJA_DEVICE (int j) {
     field.vertexx[j] = xmin + dx * (static_cast<int>(j) - 1 - x_min);
     field.vertexdx[j] = dx;
   });
 
-  RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(0u, yrange),
+  RAJA::forall<raja_default_policy>(RAJA::TypedRangeSegment<int>(0u, yrange),
       [=] RAJA_DEVICE (int k) {
     field.vertexy[k] = ymin + dy * (static_cast<int>(k) - 1 - y_min);
     field.vertexdy[k] = dy;
@@ -64,13 +64,13 @@ void initialise_chunk(const int tile, global_variables &globals) {
   const size_t xrange1 = (x_max + 2) - (x_min - 2) + 1;
   const size_t yrange1 = (y_max + 2) - (y_min - 2) + 1;
 
-  RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(0u, yrange),
+  RAJA::forall<raja_default_policy>(RAJA::TypedRangeSegment<int>(0u, xrange1),
       [=] RAJA_DEVICE (int j) {
     field.cellx[j] = 0.5 * (field.vertexx[j] + field.vertexx[j + 1]);
     field.celldx[j] = dx;
   });
 
-  RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(RAJA::TypedRangeSegment<int>(0u, yrange1),
+  RAJA::forall<raja_default_policy>(RAJA::TypedRangeSegment<int>(0u, yrange1),
       [=] RAJA_DEVICE (int k) {
     field.celly[k] = 0.5 * (field.vertexy[k] + field.vertexy[k + 1]);
     field.celldy[k] = dy;

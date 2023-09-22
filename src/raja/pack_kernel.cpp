@@ -53,7 +53,7 @@ void clover_pack_message_left(global_variables &, int x_min, int x_max, int y_mi
   // DO k=y_min-depth,y_max+y_inc+depth
 
   //clover::par_ranged1(Range1d{y_min - depth + 1, y_max + y_inc + depth + 2}, [=] DEVICE_KERNEL(int k) {
-  RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(
+  RAJA::forall<raja_default_policy>(
     RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + y_inc + depth + 2),
         [=] RAJA_DEVICE (int k) {
     for (int j = 0; j < depth; ++j) {
@@ -88,7 +88,7 @@ void clover_unpack_message_left(global_variables &, int x_min, int x_max, int y_
   // DO k=y_min-depth,y_max+y_inc+depth
 
 //  clover::par_ranged1(Range1d{y_min - depth + 1, y_max + y_inc + depth + 2}, [=] DEVICE_KERNEL(int k) {
-  RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(
+  RAJA::forall<raja_default_policy>(
     RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + y_inc + depth + 2),
         [=] RAJA_DEVICE (int k) {
     for (int j = 0; j < depth; ++j) {
@@ -123,7 +123,7 @@ void clover_pack_message_right(global_variables &, int x_min, int x_max, int y_m
   // DO k=y_min-depth,y_max+y_inc+depth
 
 //  clover::par_ranged1(Range1d{y_min - depth + 1, y_max + y_inc + depth + 2}, [=] DEVICE_KERNEL(int k) {
-  RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(
+  RAJA::forall<raja_default_policy>(
     RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + y_inc + depth + 2),
         [=] RAJA_DEVICE (int k) {
     for (int j = 0; j < depth; ++j) {
@@ -162,7 +162,7 @@ void clover_unpack_message_right(global_variables &, int x_min, int x_max, int y
   // DO k=y_min-depth,y_max+y_inc+depth
 
 //  clover::par_ranged1(Range1d{y_min - depth + 1, y_max + y_inc + depth + 2}, [=] DEVICE_KERNEL(int k) {
-  RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(
+  RAJA::forall<raja_default_policy>(
     RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + y_inc + depth + 2),
         [=] RAJA_DEVICE (int k) {
     for (int j = 0; j < depth; ++j) {
@@ -197,7 +197,7 @@ void clover_pack_message_top(global_variables &, int x_min, int x_max, int y_min
   for (int k = 0; k < depth; ++k) {
     // DO j=x_min-depth,x_max+x_inc+depth
 
-    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(
+    RAJA::forall<raja_default_policy>(
         RAJA::TypedRangeSegment<int>(x_min - depth + 1,
           x_max + x_inc + depth + 2), [=] RAJA_DEVICE (int j) {
       size_t index = buffer_offset + k + j * depth;
@@ -236,7 +236,7 @@ void clover_unpack_message_top(global_variables &, int x_min, int x_max, int y_m
     // DO j=x_min-depth,x_max+x_inc+depth
 
 //    clover::par_ranged1(Range1d{x_min - depth + 1, x_max + x_inc + depth + 2}, [=] DEVICE_KERNEL(int j) {
-    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(
+    RAJA::forall<raja_default_policy>(
         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + x_inc + depth + 2), [=] RAJA_DEVICE (int j) {
       size_t index = buffer_offset + k + j * depth;
       field(j, y_max + y_inc + k + 2) = top_rcv[index];
@@ -273,7 +273,7 @@ void clover_pack_message_bottom(global_variables &, int x_min, int x_max, int y_
   for (int k = 0; k < depth; ++k) {
     // DO j=x_min-depth,x_max+x_inc+depth
 
-    RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(
+    RAJA::forall<raja_default_policy>(
         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + x_inc + depth + 2), [=] RAJA_DEVICE (int j) {
       size_t index = buffer_offset + k + j * depth;
       bottom_snd[index] = field(j, y_min + y_inc - 1 + k + 2);
@@ -307,7 +307,7 @@ void clover_unpack_message_bottom(global_variables &, int x_min, int x_max, int 
     // DO j=x_min-depth,x_max+x_inc+depth
 
 //    clover::par_ranged1(Range1d{x_min - depth + 1, x_max + x_inc + depth + 2}, [=] DEVICE_KERNEL(int j) {
-      RAJA::forall<RAJA::cuda_exec<RAJA_BLOCK_SIZE>>(
+      RAJA::forall<raja_default_policy>(
         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + x_inc + depth + 2),
         [=] RAJA_DEVICE (int j) {
           size_t index = buffer_offset + k + j * depth;

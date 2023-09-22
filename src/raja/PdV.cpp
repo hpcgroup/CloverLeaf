@@ -103,7 +103,7 @@ void PdV(global_variables &globals, bool predict) {
 
   clover_check_error(globals.error_condition);
   if (globals.profiler_on) {
-    clover::checkError(cudaDeviceSynchronize());
+    clover::checkError(rajaDeviceSynchronize());
     globals.profiler.PdV += timer() - kernel_time;
   }
 
@@ -118,7 +118,7 @@ void PdV(global_variables &globals, bool predict) {
     }
 
     if (globals.profiler_on) {
-      clover::checkError(cudaDeviceSynchronize());
+      clover::checkError(rajaDeviceSynchronize());
       globals.profiler.ideal_gas += timer() - kernel_time;
     }
 
@@ -133,7 +133,7 @@ void PdV(global_variables &globals, bool predict) {
     if (globals.profiler_on) kernel_time = timer();
     revert(globals);
     if (globals.profiler_on) {
-      clover::checkError(cudaDeviceSynchronize());
+      clover::checkError(rajaDeviceSynchronize());
       globals.profiler.revert += timer() - kernel_time;
     }
   }

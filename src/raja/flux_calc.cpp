@@ -61,7 +61,7 @@ void flux_calc(global_variables &globals) {
   }
 
   if (globals.profiler_on) {
-    clover::checkError(cudaDeviceSynchronize());
+    clover::checkError(rajaDeviceSynchronize());
     globals.profiler.flux += timer() - kernel_time;
   }
 }
