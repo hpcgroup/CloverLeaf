@@ -77,14 +77,6 @@ struct CLResourceManager{
 struct chunk_context {};
 struct context {};
 
-// Generic error checking for when callsite is async or unimportant
-static inline void checkError(const cudaError_t err = cudaGetLastError()) {
-  if (err != cudaSuccess) {
-    std::cerr << std::string(cudaGetErrorName(err)) + ": " + std::string(cudaGetErrorString(err)) << std::endl;
-    std::abort();
-  }
-}
-
 template <typename T> static inline T *alloc(size_t count) {
   static auto& rm = umpire::ResourceManager::getInstance();
 #ifdef CLOVER_MANAGED_ALLOC
@@ -183,83 +175,23 @@ template <typename T> struct Buffer2D {
 
 template <typename T> using StagingBuffer1D = T*;
 
-//template <typename F> __global__ void par_reduce_kernel(F functor) {
-//  const int gid = threadIdx.x + blockIdx.x * blockDim.x;
-//  functor(gid);
-//}
-//
-//template <size_t THREADS, size_t BLOCK, typename F>
-//static void par_reduce(const F functor, const char *file = CLOVER_BUILTIN_FILE, int loc = CLOVER_BUILTIN_LINE) {
-//  par_reduce_kernel<F><<<THREADS, BLOCK>>>(functor);
-//#ifdef CLOVER_SYNC_ALL_KERNELS
-//  if (auto result = cudaDeviceSynchronize(); result != cudaSuccess) {
-//    std::cerr << "Reduce kernel at " << file << ":" << loc << " failed: " << cudaGetErrorString(result) << std::endl;
-//  }
-//#endif
-//}
-
-//template <typename F> __global__ void par_ranged1d_kernel(Range1d r, F functor) {
-//  const int gid = threadIdx.x + blockIdx.x * blockDim.x;
-//  if (gid >= r.size) return;
-//  functor(r.from + gid);
-//}
-
-//template <size_t BLOCK = CLOVER_DEFAULT_BLOCK_SIZE, typename F>
-//static void par_ranged1(const Range1d &r, const F functor, const char *file = CLOVER_BUILTIN_FILE, int loc = CLOVER_BUILTIN_LINE) {
-//  int blocks = r.size < BLOCK ? 1 : BLOCK;
-//  int threads = std::ceil(static_cast<double>(r.size) / blocks);
-//  par_ranged1d_kernel<F><<<threads, blocks>>>(r, functor);
-//#ifdef CLOVER_SYNC_ALL_KERNELS
-//  if (auto result = cudaDeviceSynchronize(); result != cudaSuccess) {
-//    std::cerr << "1D kernel at " << file << ":" << loc << " failed: " << cudaGetErrorString(result) << std::endl;
-//  }
-//#endif
-//}
-
-//template <typename F> __global__ void par_ranged2d_kernel(Range2d r, F functor) {
-//  // linearise because of limits (65536) on the second and third dimension
-//  const int gid = threadIdx.x + blockIdx.x * blockDim.x;
-//  if (gid >= r.sizeX * r.sizeY) return;
-//  const auto x = r.fromX + (gid % r.sizeX);
-//  const auto y = r.fromY + (gid / r.sizeX);
-//  functor(x, y);
-//}
-
-//template <size_t BLOCK = CLOVER_DEFAULT_BLOCK_SIZE, typename F>
-//static void par_ranged2(const Range2d &r, F functor, const char *file = CLOVER_BUILTIN_FILE, int loc = CLOVER_BUILTIN_LINE) {
-//  int blocks = r.sizeX * r.sizeY < BLOCK ? 1 : BLOCK;
-//  int threads = std::ceil(static_cast<double>(r.sizeX * r.sizeY) / blocks);
-//  par_ranged2d_kernel<F><<<threads, blocks>>>(r, functor);
-//#ifdef CLOVER_SYNC_ALL_KERNELS
-//  if (auto result = cudaDeviceSynchronize(); result != cudaSuccess) {
-//    std::cerr << "2D kernel at " << file << ":" << loc << " failed: " << cudaGetErrorString(result) << std::endl;
-//  }
-//#endif
-//}
-
-//template <typename T, int offset> struct reduce {
-//  __device__ inline static void run(T *array, T *out, T (*func)(T, T)) {
-//    if (offset > 16) __syncthreads(); // only need to sync if not working within a warp
-//    if (threadIdx.x < offset) {       // only continue if it's in the lower half
-//      array[threadIdx.x] = func(array[threadIdx.x], array[threadIdx.x + offset]);
-//      reduce<T, offset / 2>::run(array, out, func);
-//    }
-//  }
-//};
-//
-//template <typename T> struct reduce<T, 0> {
-//  __device__ inline static void run(T *array, T *out, T (*)(T, T)) { out[blockIdx.x] = array[0]; }
-//};
-
 } // namespace clover
 
 using clover::Range1d;
 using clover::Range2d;
 
-//using KERNEL_EXEC_POL_CUDA = RAJA::KernelPolicy<RAJA::statement::CudaKernel<
-//    RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
-//      RAJA::statement::For<0, RAJA::cuda_thread_y_loop,
-//        RAJA::statement::Lambda<0>>>>>;
+template<typename T>
+void raja_copy(T* dest, T* src, size_t bytes){
+  static auto& rm = umpire::ResourceManager::getInstance();
+  rm.copy(dest, src, bytes);
+}
+
+
+#ifdef __ENABLE_CUDA__
+using raja_default_policy= RAJA::cuda_exec<RAJA_BLOCK_SIZE>;
+using reduce_policy = RAJA::cuda_reduce;
+using rajaDeviceProp = cudaDeviceProp;
+using rajaError_t = cudaError_t;
 
 using KERNEL_EXEC_POL_CUDA  = RAJA::KernelPolicy<
     RAJA::statement::CudaKernel<
@@ -274,3 +206,84 @@ using KERNEL_EXEC_POL_CUDA  = RAJA::KernelPolicy<
         >
       >
     >;
+
+namespace clover{
+static inline void checkError(const cudaError_t err = cudaGetLastError()) {
+  if (err != cudaSuccess) {
+    std::cerr << std::string(cudaGetErrorName(err)) + ": " + std::string(cudaGetErrorString(err)) << std::endl;
+    std::abort();
+  }
+}
+}
+
+static inline rajaError_t rajaDeviceSynchronize() {
+  return cudaDeviceSynchronize();
+}
+
+static inline rajaError_t rajaGetDeviceProperties(rajaDeviceProp * props, int id){
+  return cudaGetDeviceProperties(props, id);
+}
+
+static inline rajaError_t rajaSetDevice(int id){
+  return cudaSetDevice(id);
+}
+
+static inline rajaError_t rajaGetDevice(int* id){
+  return cudaGetDevice(id);
+}
+
+static inline rajaError_t rajaGetDeviceCount(int *count){
+  return cudaGetDeviceCount(count);
+}
+
+#elif __ENABLE_HIP__
+using raja_default_policy= RAJA::hip_exec<RAJA_BLOCK_SIZE>;
+using reduce_policy = RAJA::hip_reduce;
+using rajaDeviceProp = hipDeviceProp_t;
+using rajaError_t = hipError_t;
+
+using KERNEL_EXEC_POL_CUDA  = RAJA::KernelPolicy<
+    RAJA::statement::HipKernel<
+        RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::hip_block_y_direct,
+          RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::hip_block_x_direct,
+            RAJA::statement::For<1, RAJA::hip_thread_y_direct,
+              RAJA::statement::For<0, RAJA::hip_thread_x_direct,
+                RAJA::statement::Lambda<0>
+              >
+            >
+          >
+        >
+      >
+    >;
+
+namespace clover{
+static inline void checkError(const hipError_t err = hipGetLastError()) {
+  if (err != hipSuccess) {
+    std::cerr << std::string(hipGetErrorName(err)) + ": " + std::string(hipGetErrorString(err)) << std::endl;
+    std::abort();
+  }
+}
+}
+
+static inline rajaError_t rajaDeviceSynchronize() {
+  return hipDeviceSynchronize();
+}
+
+static inline rajaError_t rajaGetDeviceProperties(rajaDeviceProp * props, int id){
+  return hipGetDeviceProperties(props, id);
+}
+
+static inline rajaError_t rajaSetDevice(int id){
+  return hipSetDevice(id);
+}
+
+static inline rajaError_t rajaGetDevice(int* id){
+  return hipGetDevice(id);
+}
+
+static inline rajaError_t rajaGetDeviceCount(int *count){
+  return hipGetDeviceCount(count);
+}
+
+#endif
+

@@ -123,7 +123,10 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
 
     // DO k=y_min,y_max
     //   DO j=x_min,x_max
-    RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range1, row_Range1),
+    const RAJA::TypedRangeSegment<int> row_Range123(y_min + 1,  y_max + 2);
+    const RAJA::TypedRangeSegment<int> col_Range123(x_min + 1,  x_max + 2);
+
+    RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range123, row_Range123),
         [=] RAJA_DEVICE (const int i, const int j) {
       double pre_mass_s = density1(i, j) * pre_vol(i, j);
       double post_mass_s = pre_mass_s + mass_flux_x(i, j) - mass_flux_x(i + 1, j + 0);

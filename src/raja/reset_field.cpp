@@ -70,7 +70,7 @@ void reset_field(global_variables &globals) {
   }
 
   if (globals.profiler_on) {
-    clover::checkError(cudaDeviceSynchronize());
+    clover::checkError(rajaDeviceSynchronize());
     globals.profiler.reset += timer() - kernel_time;
   }
 }

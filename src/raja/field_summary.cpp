@@ -53,7 +53,7 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
   }
 
   if (globals.profiler_on) {
-    clover::checkError(cudaDeviceSynchronize());
+    clover::checkError(rajaDeviceSynchronize());
     globals.profiler.ideal_gas += timer() - kernel_time;
     kernel_time = timer();
   }
@@ -79,18 +79,16 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
     int xmax = t.info.t_xmax;
     int xmin = t.info.t_xmin;
     field_type &field = t.field;
-    using EXEC_POL3   = RAJA::cuda_exec<RAJA_BLOCK_SIZE>;
-    using REDUCE_POL3 = RAJA::cuda_reduce;
 
-    RAJA::ReduceSum<REDUCE_POL3, double> RAJAvol(0);
-    RAJA::ReduceSum<REDUCE_POL3, double> RAJAmass(0);
-    RAJA::ReduceSum<REDUCE_POL3, double> RAJAie(0);
-    RAJA::ReduceSum<REDUCE_POL3, double> RAJAke(0);
-    RAJA::ReduceSum<REDUCE_POL3, double> RAJApress(0);
+    RAJA::ReduceSum<reduce_policy, double> RAJAvol(0);
+    RAJA::ReduceSum<reduce_policy, double> RAJAmass(0);
+    RAJA::ReduceSum<reduce_policy, double> RAJAie(0);
+    RAJA::ReduceSum<reduce_policy, double> RAJAke(0);
+    RAJA::ReduceSum<reduce_policy, double> RAJApress(0);
 
     int range = (ymax - ymin + 1) * (xmax - xmin + 1);
 //    clover::par_reduce<BLOCK, BLOCK>([=] __device__(int gid) {
-    RAJA::forall<EXEC_POL3>(RAJA::TypedRangeSegment<int>(0, range),
+    RAJA::forall<raja_default_policy>(RAJA::TypedRangeSegment<int>(0, range),
         [=] RAJA_DEVICE (int gid) {
       int v = gid;
 
@@ -164,7 +162,7 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
   clover_sum(press);
 
   if (globals.profiler_on) {
-    clover::checkError(cudaDeviceSynchronize());
+    clover::checkError(rajaDeviceSynchronize());
     globals.profiler.summary += timer() - kernel_time;
   }
 

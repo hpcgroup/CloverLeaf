@@ -101,21 +101,24 @@ void clover_exchange(global_variables &globals, const int fields[NUM_FIELDS], co
 
   bool stage = globals.config.staging_buffer;
 
-  double *left_rcv_staging = stage ? static_cast<double *>(std::malloc(left_rcv_device.size * sizeof(double))) : nullptr;
-  double *left_snd_staging = stage ? static_cast<double *>(std::malloc(left_snd_device.size * sizeof(double))) : nullptr;
-  double *right_rcv_staging = stage ? static_cast<double *>(std::malloc(right_rcv_device.size * sizeof(double))) : nullptr;
-  double *right_snd_staging = stage ? static_cast<double *>(std::malloc(right_snd_device.size * sizeof(double))) : nullptr;
-  double *top_rcv_staging = stage ? static_cast<double *>(std::malloc(top_rcv_device.size * sizeof(double))) : nullptr;
-  double *top_snd_staging = stage ? static_cast<double *>(std::malloc(top_snd_device.size * sizeof(double))) : nullptr;
-  double *bottom_rcv_staging = stage ? static_cast<double *>(std::malloc(bottom_rcv_device.size * sizeof(double))) : nullptr;
-  double *bottom_snd_staging = stage ? static_cast<double *>(std::malloc(bottom_snd_device.size * sizeof(double))) : nullptr;
+  static auto& rm = umpire::ResourceManager::getInstance();
+  umpire::Allocator alloc = rm.getAllocator(clover::CLResourceManager::allocator_ids[clover::CLResourceManager::HOST]);
+  double *left_rcv_staging = stage ? static_cast<double *>(alloc.allocate(left_rcv_device.size * sizeof(double))) : nullptr;
+  double *left_snd_staging = stage ? static_cast<double *>(alloc.allocate(left_snd_device.size * sizeof(double))) : nullptr;
+  double *right_rcv_staging = stage ? static_cast<double *>(alloc.allocate(right_rcv_device.size * sizeof(double))) : nullptr;
+  double *right_snd_staging = stage ? static_cast<double *>(alloc.allocate(right_snd_device.size * sizeof(double))) : nullptr;
+
+  double *top_rcv_staging = stage ? static_cast<double *>(alloc.allocate(top_rcv_device.size * sizeof(double))) : nullptr;
+  double *top_snd_staging = stage ? static_cast<double *>(alloc.allocate(top_snd_device.size * sizeof(double))) : nullptr;
+  double *bottom_rcv_staging = stage ? static_cast<double *>(alloc.allocate(bottom_rcv_device.size * sizeof(double))) : nullptr;
+  double *bottom_snd_staging = stage ? static_cast<double *>(alloc.allocate(bottom_snd_device.size * sizeof(double))) : nullptr;
 
   auto deviceToStaging = [](double *staging, clover::Buffer1D<double> &device) {
-    clover::checkError(cudaMemcpy(staging, device.data, device.size * sizeof(double), CLOVER_MEMCPY_KIND_D2H));
+    raja_copy(staging, device.data, device.size * sizeof(double));
   };
 
   auto stagingToDevice = [](double *staging, clover::Buffer1D<double> &device) {
-    clover::checkError(cudaMemcpy(device.data, staging, device.size * sizeof(double), CLOVER_MEMCPY_KIND_H2D));
+    raja_copy(device.data, staging, device.size * sizeof(double));
   };
 
   if (globals.chunk.chunk_neighbours[chunk_left] != external_face) {
@@ -261,40 +264,40 @@ void clover_exchange(global_variables &globals, const int fields[NUM_FIELDS], co
   bottom_rcv_device.release();
   bottom_snd_device.release();
 
-  if (stage && left_rcv_staging) std::free(left_rcv_staging);
-  if (stage && left_snd_staging) std::free(left_snd_staging);
-  if (stage && right_rcv_staging) std::free(right_rcv_staging);
-  if (stage && right_snd_staging) std::free(right_snd_staging);
-  if (stage && top_rcv_staging) std::free(top_rcv_staging);
-  if (stage && top_snd_staging) std::free(top_snd_staging);
-  if (stage && bottom_rcv_staging) std::free(bottom_rcv_staging);
-  if (stage && bottom_snd_staging) std::free(bottom_snd_staging);
+  if (stage && left_rcv_staging) clover::dealloc(left_rcv_staging);
+  if (stage && left_snd_staging) clover::dealloc(left_snd_staging);
+  if (stage && right_rcv_staging) clover::dealloc(right_rcv_staging);
+  if (stage && right_snd_staging) clover::dealloc(right_snd_staging);
+  if (stage && top_rcv_staging) clover::dealloc(top_rcv_staging);
+  if (stage && top_snd_staging) clover::dealloc(top_snd_staging);
+  if (stage && bottom_rcv_staging) clover::dealloc(bottom_rcv_staging);
+  if (stage && bottom_snd_staging) clover::dealloc(bottom_snd_staging);
 }
 
 void clover_send_recv_message_left(global_variables &globals, double *left_snd_buffer, double *left_rcv_buffer, int total_size,
                                    int tag_send, int tag_recv, MPI_Request &req_send, MPI_Request &req_recv) {
-  clover::checkError(cudaDeviceSynchronize());
+  clover::checkError(rajaDeviceSynchronize());
   int left_task = globals.chunk.chunk_neighbours[chunk_left] - 1;
   MPI_Isend(left_snd_buffer, total_size, MPI_DOUBLE, left_task, tag_send, MPI_COMM_WORLD, &req_send);
   MPI_Irecv(left_rcv_buffer, total_size, MPI_DOUBLE, left_task, tag_recv, MPI_COMM_WORLD, &req_recv);
 }
 void clover_send_recv_message_right(global_variables &globals, double *right_snd_buffer, double *right_rcv_buffer, int total_size,
                                     int tag_send, int tag_recv, MPI_Request &req_send, MPI_Request &req_recv) {
-  clover::checkError(cudaDeviceSynchronize());
+  clover::checkError(rajaDeviceSynchronize());
   int right_task = globals.chunk.chunk_neighbours[chunk_right] - 1;
   MPI_Isend(right_snd_buffer, total_size, MPI_DOUBLE, right_task, tag_send, MPI_COMM_WORLD, &req_send);
   MPI_Irecv(right_rcv_buffer, total_size, MPI_DOUBLE, right_task, tag_recv, MPI_COMM_WORLD, &req_recv);
 }
 void clover_send_recv_message_top(global_variables &globals, double *top_snd_buffer, double *top_rcv_buffer, int total_size, int tag_send,
                                   int tag_recv, MPI_Request &req_send, MPI_Request &req_recv) {
-  clover::checkError(cudaDeviceSynchronize());
+  clover::checkError(rajaDeviceSynchronize());
   int top_task = globals.chunk.chunk_neighbours[chunk_top] - 1;
   MPI_Isend(top_snd_buffer, total_size, MPI_DOUBLE, top_task, tag_send, MPI_COMM_WORLD, &req_send);
   MPI_Irecv(top_rcv_buffer, total_size, MPI_DOUBLE, top_task, tag_recv, MPI_COMM_WORLD, &req_recv);
 }
 void clover_send_recv_message_bottom(global_variables &globals, double *bottom_snd_buffer, double *bottom_rcv_buffer, int total_size,
                                      int tag_send, int tag_recv, MPI_Request &req_send, MPI_Request &req_recv) {
-  clover::checkError(cudaDeviceSynchronize());
+  clover::checkError(rajaDeviceSynchronize());
   int bottom_task = globals.chunk.chunk_neighbours[chunk_bottom] - 1;
   MPI_Isend(bottom_snd_buffer, total_size, MPI_DOUBLE, bottom_task, tag_send, MPI_COMM_WORLD, &req_send);
   MPI_Irecv(bottom_rcv_buffer, total_size, MPI_DOUBLE, bottom_task, tag_recv, MPI_COMM_WORLD, &req_recv);

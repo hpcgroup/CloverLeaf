@@ -121,11 +121,21 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
     auto ie_host = ie_buffer.mirrored();
     auto ke_host = ke_buffer.mirrored();
     auto press_host = press_buffer.mirrored();
-    vol = std::reduce(vol_host.begin(), vol_host.end(), vol, std::plus<>());
-    mass = std::reduce(mass_host.begin(), mass_host.end(), mass, std::plus<>());
-    ie = std::reduce(ie_host.begin(), ie_host.end(), ie, std::plus<>());
-    ke = std::reduce(ke_host.begin(), ke_host.end(), ke, std::plus<>());
-    press = std::reduce(press_host.begin(), press_host.end(), press, std::plus<>());
+    for ( auto I : vol_host)
+      vol += I;
+//    vol = std::reduce(vol_host.begin(), vol_host.end(), vol, std::plus<>());
+    for ( auto I : mass_host)
+      mass += I;
+ //   mass = std::reduce(mass_host.begin(), mass_host.end(), mass, std::plus<>());
+    for ( auto I : ie_host)
+      ie += I;
+ //   ie = std::reduce(ie_host.begin(), ie_host.end(), ie, std::plus<>());
+    for ( auto I: ke_host )
+      ke += ke;
+//    ke = std::reduce(ke_host.begin(), ke_host.end(), ke, std::plus<>());
+//    press = std::reduce(press_host.begin(), press_host.end(), press, std::plus<>());
+    for( auto I: press_host)
+      press += I;
   }
   vol_buffer.release();
   mass_buffer.release();

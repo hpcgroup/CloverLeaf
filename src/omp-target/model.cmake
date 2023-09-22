@@ -154,6 +154,7 @@ macro(setup)
         list(OMP_FLAGS APPEND ${OFFLOAD_FLAGS})
     else ()
         register_definitions(OMP_TARGET DIFFUSE_OVERLOAD)
+        message(WARNING "I AM HERE")
 
         # handle the vendor:arch value
         string(REPLACE ":" ";" OFFLOAD_TUPLE "${OFFLOAD}")
@@ -180,6 +181,7 @@ macro(setup)
         else ()
             message(FATAL_ERROR "Unrecognised OFFLOAD format: `${OFFLOAD}`, consider directly using OFFLOAD_FLAGS")
         endif ()
+        list(APPEND OMP_FLAGS "-foffload-lto")
 
     endif ()
 
