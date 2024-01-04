@@ -38,7 +38,7 @@ void flux_calc_kernel(int x_min, int x_max, int y_min, int y_max, double dt, clo
   // clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 1 + 2, y_max + 1 + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
   const RAJA::TypedRangeSegment<int> row_Range(y_min + 1,  y_max + 1 + 2);
   const RAJA::TypedRangeSegment<int> col_Range(x_min + 1,  x_max + 1 + 2);
-  RAJA::kernel<KERNEL_EXEC_POL_CUDA>(RAJA::make_tuple(col_Range, row_Range),
+  RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range, row_Range),
       [=] RAJA_DEVICE (const int i, const int j) {
     vol_flux_x(i, j) = 0.25 * dt * xarea(i, j) * (xvel0(i, j) + xvel0(i + 0, j + 1) + xvel1(i, j) + xvel1(i + 0, j + 1));
     vol_flux_y(i, j) = 0.25 * dt * yarea(i, j) * (yvel0(i, j) + yvel0(i + 1, j + 0) + yvel1(i, j) + yvel1(i + 1, j + 0));

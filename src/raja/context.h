@@ -187,13 +187,13 @@ void raja_copy(T* dest, T* src, size_t bytes){
 }
 
 
-#ifdef __ENABLE_CUDA__
+#if defined(RAJA_ENABLE_CUDA)
 using raja_default_policy= RAJA::cuda_exec<RAJA_BLOCK_SIZE>;
 using reduce_policy = RAJA::cuda_reduce;
 using rajaDeviceProp = cudaDeviceProp;
 using rajaError_t = cudaError_t;
 
-using KERNEL_EXEC_POL_CUDA  = RAJA::KernelPolicy<
+using KERNEL_EXEC = RAJA::KernelPolicy<
     RAJA::statement::CudaKernel<
         RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::cuda_block_y_direct,
           RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::cuda_block_x_direct,
@@ -236,13 +236,13 @@ static inline rajaError_t rajaGetDeviceCount(int *count){
   return cudaGetDeviceCount(count);
 }
 
-#elif __ENABLE_HIP__
+#elif defined(RAJA_ENABLE_HIP)
 using raja_default_policy= RAJA::hip_exec<RAJA_BLOCK_SIZE>;
 using reduce_policy = RAJA::hip_reduce;
 using rajaDeviceProp = hipDeviceProp_t;
 using rajaError_t = hipError_t;
 
-using KERNEL_EXEC_POL_CUDA  = RAJA::KernelPolicy<
+using KERNEL_EXEC = RAJA::KernelPolicy<
     RAJA::statement::HipKernel<
         RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::hip_block_y_direct,
           RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::hip_block_x_direct,

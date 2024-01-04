@@ -47,28 +47,28 @@ void advec_mom_kernel(int x_min, int x_max, int y_min, int y_max, clover::Buffer
 
   if (mom_sweep == 1) { // x 1
     //clover::par_ranged2(policy, [=] DEVICE_KERNEL(const int i, const int j) {
-    RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range, row_Range),
+    RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range, row_Range),
         [=] RAJA_DEVICE (const int i, const int j) {
       post_vol(i, j) = volume(i, j) + vol_flux_y(i + 0, j + 1) - vol_flux_y(i, j);
       pre_vol(i, j) = post_vol(i, j) + vol_flux_x(i + 1, j + 0) - vol_flux_x(i, j);
     });
   } else if (mom_sweep == 2) { // y 1
 //    clover::par_ranged2(policy, [=] DEVICE_KERNEL(const int i, const int j) {
-    RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range, row_Range),
+    RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range, row_Range),
         [=] RAJA_DEVICE (const int i, const int j) {
       post_vol(i, j) = volume(i, j) + vol_flux_x(i + 1, j + 0) - vol_flux_x(i, j);
       pre_vol(i, j) = post_vol(i, j) + vol_flux_y(i + 0, j + 1) - vol_flux_y(i, j);
     });
   } else if (mom_sweep == 3) { // x 2
 //    clover::par_ranged2(policy, [=] DEVICE_KERNEL(const int i, const int j) {
-    RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range, row_Range),
+    RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range, row_Range),
         [=] RAJA_DEVICE (const int i, const int j) {
       post_vol(i, j) = volume(i, j);
       pre_vol(i, j) = post_vol(i, j) + vol_flux_y(i + 0, j + 1) - vol_flux_y(i, j);
     });
   } else if (mom_sweep == 4) { // y 2
 // clover::par_ranged2(policy, [=] DEVICE_KERNEL(const int i, const int j) {
-   RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range, row_Range),
+   RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range, row_Range),
         [=] RAJA_DEVICE (const int i, const int j) {
       post_vol(i, j) = volume(i, j);
       pre_vol(i, j) = post_vol(i, j) + vol_flux_x(i + 1, j + 0) - vol_flux_x(i, j);
@@ -82,7 +82,7 @@ void advec_mom_kernel(int x_min, int x_max, int y_min, int y_max, clover::Buffer
       const RAJA::TypedRangeSegment<int> row_Range2(y_min + 1,  y_max + 1 + 2);
       const RAJA::TypedRangeSegment<int> col_Range2(x_min - 2 + 1,  x_max + 2 + 2);
       //clover::par_ranged2(Range2d{x_min - 2 + 1, y_min + 1, x_max + 2 + 2, y_max + 1 + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
-      RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range2, row_Range2),
+      RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range2, row_Range2),
         [=] RAJA_DEVICE (const int i, const int j) {
         // Find staggered mesh mass fluxes, nodal masses and volumes.
         node_flux(i, j) = 0.25 * (mass_flux_x(i + 0, j - 1) + mass_flux_x(i, j) + mass_flux_x(i + 1, j - 1) + mass_flux_x(i + 1, j + 0));
@@ -94,7 +94,7 @@ void advec_mom_kernel(int x_min, int x_max, int y_min, int y_max, clover::Buffer
 //      clover::par_ranged2(Range2d{x_min - 1 + 1, y_min + 1, x_max + 2 + 2, y_max + 1 + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
       const RAJA::TypedRangeSegment<int> row_Range3(y_min + 1,  y_max + 1 + 2);
       const RAJA::TypedRangeSegment<int> col_Range3(x_min - 1 + 1,  x_max + 2 + 2);
-      RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range3, row_Range3),
+      RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range3, row_Range3),
         [=] RAJA_DEVICE (const int i, const int j) {
         // Staggered cell mass post advection
         node_mass_post(i, j) = 0.25 * (density1(i + 0, j - 1) * post_vol(i + 0, j - 1) + density1(i, j) * post_vol(i, j) +
@@ -109,7 +109,7 @@ void advec_mom_kernel(int x_min, int x_max, int y_min, int y_max, clover::Buffer
 //    clover::par_ranged2(Range2d{x_min - 1 + 1, y_min + 1, x_max + 1 + 2, y_max + 1 + 2}, [=] DEVICE_KERNEL(const int x, const int y) {
       const RAJA::TypedRangeSegment<int> row_Range4(y_min + 1,  y_max + 1 + 2);
       const RAJA::TypedRangeSegment<int> col_Range4(x_min - 1 + 1,  x_max + 1 + 2);
-      RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range4, row_Range4),
+      RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range4, row_Range4),
         [=] RAJA_DEVICE (const int x, const int y) {
       int upwind, donor, downwind, dif;
       double sigma, width, limiter, vdiffuw, vdiffdw, auw, adw, wind, advec_vel_s;
@@ -150,7 +150,7 @@ void advec_mom_kernel(int x_min, int x_max, int y_min, int y_max, clover::Buffer
     // clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 1 + 2, y_max + 1 + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
     const RAJA::TypedRangeSegment<int> row_Range5(y_min + 1,  y_max + 1 + 2);
     const RAJA::TypedRangeSegment<int> col_Range5(x_min + 1,  x_max + 1 + 2);
-    RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range5, row_Range5),
+    RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range5, row_Range5),
       [=] RAJA_DEVICE (const int i, const int j) {
         vel1(i, j) = (vel1(i, j) * node_mass_pre(i, j) + mom_flux(i - 1, j + 0) - mom_flux(i, j)) / node_mass_post(i, j);
     });
@@ -161,7 +161,7 @@ void advec_mom_kernel(int x_min, int x_max, int y_min, int y_max, clover::Buffer
       //clover::par_ranged2(Range2d{x_min + 1, y_min - 2 + 1, x_max + 1 + 2, y_max + 2 + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
       const RAJA::TypedRangeSegment<int> row_Range5(y_min - 2 + 1,  y_max + 2 + 2);
       const RAJA::TypedRangeSegment<int> col_Range5(x_min + 1,  x_max + 1 + 2);
-      RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range5, row_Range5),
+      RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range5, row_Range5),
         [=] RAJA_DEVICE (const int i, const int j) {
         // Find staggered mesh mass fluxes and nodal masses and volumes.
         node_flux(i, j) = 0.25 * (mass_flux_y(i - 1, j + 0) + mass_flux_y(i, j) + mass_flux_y(i - 1, j + 1) + mass_flux_y(i + 0, j + 1));
@@ -172,7 +172,7 @@ void advec_mom_kernel(int x_min, int x_max, int y_min, int y_max, clover::Buffer
       // clover::par_ranged2(Range2d{x_min + 1, y_min - 1 + 1, x_max + 1 + 2, y_max + 2 + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
       const RAJA::TypedRangeSegment<int> row_Range6(y_min - 1 + 1,  y_max + 2 + 2);
       const RAJA::TypedRangeSegment<int> col_Range6(x_min + 1,  x_max + 1 + 2);
-      RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range6, row_Range6),
+      RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range6, row_Range6),
         [=] RAJA_DEVICE (const int i, const int j) {
         node_mass_post(i, j) = 0.25 * (density1(i + 0, j - 1) * post_vol(i + 0, j - 1) + density1(i, j) * post_vol(i, j) +
                                        density1(i - 1, j - 1) * post_vol(i - 1, j - 1) + density1(i - 1, j + 0) * post_vol(i - 1, j + 0));
@@ -186,7 +186,7 @@ void advec_mom_kernel(int x_min, int x_max, int y_min, int y_max, clover::Buffer
 //    clover::par_ranged2(Range2d{x_min + 1, y_min - 1 + 1, x_max + 1 + 2, y_max + 1 + 2}, [=] DEVICE_KERNEL(const int x, const int y) {
     const RAJA::TypedRangeSegment<int> row_Range7(y_min - 1 + 1,  y_max + 1 + 2);
     const RAJA::TypedRangeSegment<int> col_Range7(x_min + 1,  x_max + 1 + 2);
-    RAJA::kernel<KERNEL_EXEC_POL_CUDA>( RAJA::make_tuple(col_Range7, row_Range7),
+    RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range7, row_Range7),
         [=] RAJA_DEVICE (const int x, const int y) {
 
       int upwind, donor, downwind, dif;
@@ -229,7 +229,7 @@ void advec_mom_kernel(int x_min, int x_max, int y_min, int y_max, clover::Buffer
 //    clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 1 + 2, y_max + 1 + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
     const RAJA::TypedRangeSegment<int> row_Range8(y_min + 1,  y_max + 1 + 2);
     const RAJA::TypedRangeSegment<int> col_Range8(x_min + 1,  x_max + 1 + 2);
-    RAJA::kernel<KERNEL_EXEC_POL_CUDA>(RAJA::make_tuple(col_Range8, row_Range8),
+    RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range8, row_Range8),
         [=] RAJA_DEVICE (const int i, const int j) {
       vel1(i, j) = (vel1(i, j) * node_mass_pre(i, j) + mom_flux(i + 0, j - 1) - mom_flux(i, j)) / node_mass_post(i, j);
     });

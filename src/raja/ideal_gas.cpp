@@ -45,7 +45,7 @@ void ideal_gas_kernel(int x_min, int x_max, int y_min, int y_max, clover::Buffer
   // clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 2, y_max + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
   const RAJA::TypedRangeSegment<int> row_Range1(y_min + 1,  y_max + 2);
   const RAJA::TypedRangeSegment<int> col_Range1(x_min + 1,  x_max + 2);
-  RAJA::kernel<KERNEL_EXEC_POL_CUDA>(RAJA::make_tuple(col_Range1, row_Range1),
+  RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range1, row_Range1),
       [=] RAJA_DEVICE (const int i, const int j) {
     double v = 1.0 / density(i, j);
     pressure(i, j) = (1.4 - 1.0) * density(i, j) * energy(i, j);
