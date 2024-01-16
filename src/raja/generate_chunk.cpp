@@ -98,7 +98,7 @@ void generate_chunk(const int tile, global_variables &globals) {
   // State 1 is always the background state
 
 //  clover::par_ranged2(xyrange_policy, [=] DEVICE_KERNEL(const size_t i, const size_t j) {
-  RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range, row_Range),
+  RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range, row_Range),
       [=] RAJA_DEVICE (const int i, const int j) {
     field.energy0(i, j) = state_energy[0];
     field.density0(i, j) = state_density[0];
@@ -109,7 +109,7 @@ void generate_chunk(const int tile, global_variables &globals) {
   for (int state = 1; state < globals.config.number_of_states; ++state) {
 
   //  clover::par_ranged2(xyrange_policy, [=] DEVICE_KERNEL(const size_t x, const size_t y) {
-    RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range, row_Range),
+    RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range, row_Range),
       [=] RAJA_DEVICE (const int x, const int y) {
       const int j = x;
       const int k = y;

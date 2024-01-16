@@ -49,7 +49,7 @@ void PdV_kernel(bool predict, int x_min, int x_max, int y_min, int y_max, double
   RAJA::TypedRangeSegment<int> col_Range(x_min + 1, x_max + 2);
 
   if (predict) {
-    RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range, row_Range),
+    RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range, row_Range),
       [=] RAJA_DEVICE (const int i, const int j) {
       double left_flux = (xarea(i, j) * (xvel0(i, j) + xvel0(i + 0, j + 1) + xvel0(i, j) + xvel0(i + 0, j + 1))) * 0.25 * dt * 0.5;
       double right_flux =
@@ -66,7 +66,7 @@ void PdV_kernel(bool predict, int x_min, int x_max, int y_min, int y_max, double
     });
 
   } else {
-    RAJA::kernel<KERNEL_EXEC>(RAJA::make_tuple(col_Range, row_Range),
+    RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range, row_Range),
       [=] RAJA_DEVICE (const int i, const int j) {
       double left_flux = (xarea(i, j) * (xvel0(i, j) + xvel0(i + 0, j + 1) + xvel1(i, j) + xvel1(i + 0, j + 1))) * 0.25 * dt;
       double right_flux =

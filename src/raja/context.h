@@ -193,7 +193,7 @@ using reduce_policy = RAJA::cuda_reduce;
 using rajaDeviceProp = cudaDeviceProp;
 using rajaError_t = cudaError_t;
 
-using KERNEL_EXEC = RAJA::KernelPolicy<
+using KERNEL_EXEC_POL = RAJA::KernelPolicy<
     RAJA::statement::CudaKernel<
         RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::cuda_block_y_direct,
           RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::cuda_block_x_direct,
@@ -242,7 +242,7 @@ using reduce_policy = RAJA::hip_reduce;
 using rajaDeviceProp = hipDeviceProp_t;
 using rajaError_t = hipError_t;
 
-using KERNEL_EXEC = RAJA::KernelPolicy<
+using KERNEL_EXEC_POL = RAJA::KernelPolicy<
     RAJA::statement::HipKernel<
         RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::hip_block_y_direct,
           RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::hip_block_x_direct,
