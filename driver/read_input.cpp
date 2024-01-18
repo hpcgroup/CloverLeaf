@@ -132,7 +132,7 @@ void read_input(std::ifstream &g_in, parallel_ &parallel, global_config &globals
     std::string local = line;
 //    char *c_line = new char[line.size() + 1];
 //    std::strcpy(c_line, line.c_str());
-    for (char *w = std::strtok(local.data(), " ="); w != nullptr; w = std::strtok(nullptr, " =")) {
+    for (char *w = std::strtok(const_cast<char*>(local.data()), " ="); w != nullptr; w = std::strtok(nullptr, " =")) {
       words.emplace_back(w);
     }
 
