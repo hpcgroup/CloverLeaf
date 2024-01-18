@@ -285,5 +285,27 @@ static inline rajaError_t rajaGetDeviceCount(int *count){
   return hipGetDeviceCount(count);
 }
 
-#endif
+#elif defined(RAJA_ENABLE_SYCL)
+/*
+  * The RAJA SYCL backend has some errors that are to be addressed at
+  * https://github.com/LLNL/RAJA/pull/1574. Right now the support for the RAJA
+  * SYCL backend is a WIP.
+*/
+using raja_default_policy= RAJA::sycl_exec<RAJA_BLOCK_SIZE>;
+using reduce_policy = RAJA::sycl_reduce;
 
+using KERNEL_EXEC_POL = RAJA::KernelPolicy<
+    RAJA::statement::SyclKernel<
+        RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::sycl_group_1_direct,
+          RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::sycl_group_0_direct,
+            RAJA::statement::For<1, RAJA::sycl_local_1_direct,
+              RAJA::statement::For<0, RAJA::sycl_local_0_direct,
+                RAJA::statement::Lambda<0>
+              >
+            >
+          >
+        >
+      >
+    >;
+
+#endif
