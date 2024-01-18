@@ -115,7 +115,7 @@ template <typename T> struct Buffer1D {
 
   void release() { dealloc(data); }
 
-  __host__ __device__ T &operator[](size_t i) const { return data[i]; }
+  RAJA_HOST_DEVICE T &operator[](size_t i) const { return data[i]; }
   T *actual() { return data; }
 
   template <size_t D> [[nodiscard]] size_t extent() const {
@@ -146,7 +146,7 @@ template <typename T> struct Buffer2D {
 
   void release() { dealloc(data); }
 
-  __host__ __device__ T &operator()(size_t i, size_t j) const { return data[i + j * sizeX]; }
+RAJA_HOST_DEVICE T &operator()(size_t i, size_t j) const { return data[i + j * sizeX]; }
   T *actual() { return data; }
 
   template <size_t D> [[nodiscard]] size_t extent() const {

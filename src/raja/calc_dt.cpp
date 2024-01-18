@@ -60,7 +60,7 @@ void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, 
   RAJA::ReduceMin<reduce_policy, double> raja_min(std::numeric_limits<int>::max());
   RAJA::RangeSegment arange(0, range);
 
-  RAJA::forall<raja_default_policy>(arange, [=] RAJA_DEVICE (int v) {
+  RAJA::forall<raja_default_policy>(arange, [=] RAJA_HOST_DEVICE (int v) {
       const auto i = xStart + (v % sizeX);
       const auto j = yStart + (v / sizeX);
 

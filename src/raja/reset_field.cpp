@@ -35,7 +35,7 @@ void reset_field_kernel(int x_min, int x_max, int y_min, int y_max, clover::Buff
   const RAJA::TypedRangeSegment<int> row_Range(y_min + 1,  y_max + 2);
   const RAJA::TypedRangeSegment<int> col_Range(x_min + 1,  x_max + 2);
   RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range, row_Range),
-      [=] RAJA_DEVICE (const int i, const int j) {
+      [=] RAJA_HOST_DEVICE (const int i, const int j) {
     density0(i, j) = density1(i, j);
     energy0(i, j) = energy1(i, j);
   });
@@ -46,7 +46,7 @@ void reset_field_kernel(int x_min, int x_max, int y_min, int y_max, clover::Buff
   const RAJA::TypedRangeSegment<int> row_Range1(y_min + 1,  y_max + 1 + 2);
   const RAJA::TypedRangeSegment<int> col_Range1(x_min + 1,  x_max + 1 + 2);
   RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range1, row_Range1),
-      [=] RAJA_DEVICE (const int i, const int j) {
+      [=] RAJA_HOST_DEVICE (const int i, const int j) {
     xvel0(i, j) = xvel1(i, j);
     yvel0(i, j) = yvel1(i, j);
   });

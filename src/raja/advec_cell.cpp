@@ -48,14 +48,14 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
     if (sweep_number == 1) {
 
       RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range, row_Range),
-        [=] RAJA_DEVICE (const int i, const int j) {
+        [=] RAJA_HOST_DEVICE (const int i, const int j) {
         pre_vol(i, j) = volume(i, j) + (vol_flux_x(i + 1, j + 0) - vol_flux_x(i, j) + vol_flux_y(i + 0, j + 1) - vol_flux_y(i, j));
         post_vol(i, j) = pre_vol(i, j) - (vol_flux_x(i + 1, j + 0) - vol_flux_x(i, j));
       });
 
     } else {
       RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range, row_Range),
-        [=] RAJA_DEVICE (const int i, const int j) {
+        [=] RAJA_HOST_DEVICE (const int i, const int j) {
         pre_vol(i, j) = volume(i, j) + vol_flux_x(i + 1, j + 0) - vol_flux_x(i, j);
         post_vol(i, j) = volume(i, j);
       });
@@ -67,7 +67,7 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
     const RAJA::TypedRangeSegment<int> col_Range1(x_min + 1,  x_max + 2 + 2);
 
     RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range1, row_Range1),
-        [=] RAJA_DEVICE (const int x, const int y) {
+        [=] RAJA_HOST_DEVICE (const int x, const int y) {
       int upwind, donor, downwind, dif;
       double sigmat, sigma3, sigma4, sigmav,  sigmam, diffuw, diffdw, limiter, wind;
 
@@ -127,7 +127,7 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
     const RAJA::TypedRangeSegment<int> col_Range123(x_min + 1,  x_max + 2);
 
     RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range123, row_Range123),
-        [=] RAJA_DEVICE (const int i, const int j) {
+        [=] RAJA_HOST_DEVICE (const int i, const int j) {
       double pre_mass_s = density1(i, j) * pre_vol(i, j);
       double post_mass_s = pre_mass_s + mass_flux_x(i, j) - mass_flux_x(i + 1, j + 0);
       double post_ener_s = (energy1(i, j) * pre_mass_s + ener_flux(i, j) - ener_flux(i + 1, j + 0)) / post_mass_s;
@@ -148,7 +148,7 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
 
 //      clover::par_ranged2(policy, [=] DEVICE_KERNEL(const int i, const int j) {
       RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range1, row_Range1),
-        [=] RAJA_DEVICE (const int i, const int j) {
+        [=] RAJA_HOST_DEVICE (const int i, const int j) {
         pre_vol(i, j) = volume(i, j) + (vol_flux_y(i + 0, j + 1) - vol_flux_y(i, j) + vol_flux_x(i + 1, j + 0) - vol_flux_x(i, j));
         post_vol(i, j) = pre_vol(i, j) - (vol_flux_y(i + 0, j + 1) - vol_flux_y(i, j));
       });
@@ -156,7 +156,7 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
     } else {
 //      clover::par_ranged2(policy, [=] DEVICE_KERNEL(const int i, const int j) {
       RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range1, row_Range1),
-        [=] RAJA_DEVICE (const int i, const int j) {
+        [=] RAJA_HOST_DEVICE (const int i, const int j) {
         pre_vol(i, j) = volume(i, j) + vol_flux_y(i + 0, j + 1) - vol_flux_y(i, j);
         post_vol(i, j) = volume(i, j);
       });
@@ -169,7 +169,7 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
 
 //    clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 2, y_max + 2 + 2}, [=] DEVICE_KERNEL(const int x, const int y) {
     RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range2, row_Range2),
-        [=] RAJA_DEVICE (const int x, const int y) {
+        [=] RAJA_HOST_DEVICE (const int x, const int y) {
       int upwind, donor, downwind, dif;
       double sigmat, sigma3, sigma4, sigmav,  sigmam, diffuw, diffdw, limiter, wind;
 
@@ -228,7 +228,7 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
     const RAJA::TypedRangeSegment<int> col_Range3(x_min + 1,  x_max + 2);
 //    clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 2, y_max + 2}, [=] DEVICE_KERNEL(const int i, const int j) {
      RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range3, row_Range3),
-        [=] RAJA_DEVICE (const int i, const int j) {
+        [=] RAJA_HOST_DEVICE (const int i, const int j) {
       double pre_mass_s = density1(i, j) * pre_vol(i, j);
       double post_mass_s = pre_mass_s + mass_flux_y(i, j) - mass_flux_y(i + 0, j + 1);
       double post_ener_s = (energy1(i, j) * pre_mass_s + ener_flux(i, j) - ener_flux(i + 0, j + 1)) / post_mass_s;

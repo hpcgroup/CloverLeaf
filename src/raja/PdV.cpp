@@ -50,7 +50,7 @@ void PdV_kernel(bool predict, int x_min, int x_max, int y_min, int y_max, double
 
   if (predict) {
     RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range, row_Range),
-      [=] RAJA_DEVICE (const int i, const int j) {
+      [=] RAJA_HOST_DEVICE (const int i, const int j) {
       double left_flux = (xarea(i, j) * (xvel0(i, j) + xvel0(i + 0, j + 1) + xvel0(i, j) + xvel0(i + 0, j + 1))) * 0.25 * dt * 0.5;
       double right_flux =
           (xarea(i + 1, j + 0) * (xvel0(i + 1, j + 0) + xvel0(i + 1, j + 1) + xvel0(i + 1, j + 0) + xvel0(i + 1, j + 1))) * 0.25 * dt * 0.5;
@@ -67,7 +67,7 @@ void PdV_kernel(bool predict, int x_min, int x_max, int y_min, int y_max, double
 
   } else {
     RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range, row_Range),
-      [=] RAJA_DEVICE (const int i, const int j) {
+      [=] RAJA_HOST_DEVICE (const int i, const int j) {
       double left_flux = (xarea(i, j) * (xvel0(i, j) + xvel0(i + 0, j + 1) + xvel1(i, j) + xvel1(i + 0, j + 1))) * 0.25 * dt;
       double right_flux =
           (xarea(i + 1, j + 0) * (xvel0(i + 1, j + 0) + xvel0(i + 1, j + 1) + xvel1(i + 1, j + 0) + xvel1(i + 1, j + 1))) * 0.25 * dt;

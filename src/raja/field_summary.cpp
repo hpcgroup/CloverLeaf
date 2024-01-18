@@ -89,7 +89,7 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
     int range = (ymax - ymin + 1) * (xmax - xmin + 1);
 //    clover::par_reduce<BLOCK, BLOCK>([=] __device__(int gid) {
     RAJA::forall<raja_default_policy>(RAJA::TypedRangeSegment<int>(0, range),
-        [=] RAJA_DEVICE (int gid) {
+        [=] RAJA_HOST_DEVICE (int gid) {
       int v = gid;
 
       const size_t j = xmin + 1 + v % (xmax - xmin + 1);

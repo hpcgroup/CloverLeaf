@@ -44,7 +44,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
       // DO j=x_min-depth,x_max+depth
 
       RAJA::forall<raja_default_policy>(
-        RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j ) {
+        RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j ) {
         for (int k = 0; k < depth; ++k) {
           field.density0(j, 1 - k) = field.density0(j, 2 + k);
         }
@@ -55,7 +55,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-        RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j ) {
+        RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j ) {
         for (int k = 0; k < depth; ++k) {
           field.density0(j, y_max + 2 + k) = field.density0(j, y_max + 1 - k);
         }
@@ -66,7 +66,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
       //clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-        RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+        RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.density0(1 - j, k) = field.density0(2 + j, k);
         }
@@ -76,7 +76,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
       // DO k=y_min-depth,y_max+depth
 
       RAJA::forall<raja_default_policy>(
-        RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+        RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.density0(x_max + 2 + j, k) = field.density0(x_max + 1 - j, k);
         }
@@ -90,7 +90,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-        RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j ) {
+        RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j ) {
         for (int k = 0; k < depth; ++k) {
           field.density1(j, 1 - k) = field.density1(j, 2 + k);
         }
@@ -101,7 +101,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-        RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j ) {
+        RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j ) {
         for (int k = 0; k < depth; ++k) {
           field.density1(j, y_max + 2 + k) = field.density1(j, y_max + 1 - k);
         }
@@ -112,7 +112,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) {
         RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.density1(1 - j, k) = field.density1(2 + j, k);
         }
@@ -123,7 +123,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) {
        RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.density1(x_max + 2 + j, k) = field.density1(x_max + 1 - j, k);
         }
@@ -137,7 +137,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.energy0(j, 1 - k) = field.energy0(j, 2 + k);
         }
@@ -148,7 +148,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.energy0(j, y_max + 2 + k) = field.energy0(j, y_max + 1 - k);
         }
@@ -159,7 +159,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.energy0(1 - j, k) = field.energy0(2 + j, k);
         }
@@ -170,7 +170,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.energy0(x_max + 2 + j, k) = field.energy0(x_max + 1 - j, k);
         }
@@ -184,7 +184,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.energy1(j, 1 - k) = field.energy1(j, 2 + k);
         }
@@ -195,7 +195,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.energy1(j, y_max + 2 + k) = field.energy1(j, y_max + 1 - k);
         }
@@ -206,7 +206,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) {
      RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.energy1(1 - j, k) = field.energy1(2 + j, k);
         }
@@ -217,7 +217,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.energy1(x_max + 2 + j, k) = field.energy1(x_max + 1 - j, k);
         }
@@ -231,7 +231,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) { // FIXME
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.pressure(j, 1 - k) = field.pressure(j, 2 + k);
         }
@@ -242,7 +242,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
       //clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) { // FIXME
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.pressure(j, y_max + 2 + k) = field.pressure(j, y_max + 1 - k);
         }
@@ -253,7 +253,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) { // FIXME
        RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.pressure(1 - j, k) = field.pressure(2 + j, k);
         }
@@ -263,7 +263,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
       // DO k=y_min-depth,y_max+depth
       //clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) { // FIXME
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.pressure(x_max + 2 + j, k) = field.pressure(x_max + 1 - j, k);
         }
@@ -277,7 +277,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) { // FIXME par bad
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.viscosity(j, 1 - k) = field.viscosity(j, 2 + k);
         }
@@ -288,7 +288,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) { // FIXME par bad
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.viscosity(j, y_max + 2 + k) = field.viscosity(j, y_max + 1 - k);
         }
@@ -299,7 +299,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
       //clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) { // FIXME par bad
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.viscosity(1 - j, k) = field.viscosity(2 + j, k);
         }
@@ -310,7 +310,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
       //clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) { // FIXME par bad
        RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.viscosity(x_max + 2 + j, k) = field.viscosity(x_max + 1 - j, k);
         }
@@ -323,7 +323,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
       // DO j=x_min-depth,x_max+depth
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) {
        RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.soundspeed(j, 1 - k) = field.soundspeed(j, 2 + k);
         }
@@ -334,7 +334,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
       //clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.soundspeed(j, y_max + 2 + k) = field.soundspeed(j, y_max + 1 - k);
         }
@@ -345,7 +345,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
       //clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.soundspeed(1 - j, k) = field.soundspeed(2 + j, k);
         }
@@ -356,7 +356,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.soundspeed(x_max + 2 + j, k) = field.soundspeed(x_max + 1 - j, k);
         }
@@ -370,7 +370,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int j) {
      RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.xvel0(j, 1 - k) = field.xvel0(j, 1 + 2 + k);
         }
@@ -381,7 +381,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int j) {
      RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.xvel0(j, y_max + 1 + 2 + k) = field.xvel0(j, y_max + 1 - k);
         }
@@ -392,7 +392,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int k) {
      RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.xvel0(1 - j, k) = -field.xvel0(1 + 2 + j, k);
         }
@@ -403,7 +403,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int k) {
         RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.xvel0(x_max + 2 + 1 + j, k) = -field.xvel0(x_max + 1 - j, k);
         }
@@ -417,7 +417,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int j) {
         RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.xvel1(j, 1 - k) = field.xvel1(j, 1 + 2 + k);
         }
@@ -428,7 +428,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int j) {
         RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.xvel1(j, y_max + 1 + 2 + k) = field.xvel1(j, y_max + 1 - k);
         }
@@ -439,7 +439,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int k) {
         RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.xvel1(1 - j, k) = -field.xvel1(1 + 2 + j, k);
         }
@@ -450,7 +450,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
       //clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.xvel1(x_max + 2 + 1 + j, k) = -field.xvel1(x_max + 1 - j, k);
         }
@@ -464,7 +464,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.yvel0(j, 1 - k) = -field.yvel0(j, 1 + 2 + k);
         }
@@ -474,7 +474,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
       // DO j=x_min-depth,x_max+1+depth
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.yvel0(j, y_max + 1 + 2 + k) = -field.yvel0(j, y_max + 1 - k);
         }
@@ -485,7 +485,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.yvel0(1 - j, k) = field.yvel0(1 + 2 + j, k);
         }
@@ -496,7 +496,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.yvel0(x_max + 2 + 1 + j, k) = field.yvel0(x_max + 1 - j, k);
         }
@@ -510,7 +510,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.yvel1(j, 1 - k) = -field.yvel1(j, 1 + 2 + k);
         }
@@ -521,7 +521,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.yvel1(j, y_max + 1 + 2 + k) = -field.yvel1(j, y_max + 1 - k);
         }
@@ -532,7 +532,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.yvel1(1 - j, k) = field.yvel1(1 + 2 + j, k);
         }
@@ -543,7 +543,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.yvel1(x_max + 2 + 1 + j, k) = field.yvel1(x_max + 1 - j, k);
         }
@@ -557,7 +557,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.vol_flux_x(j, 1 - k) = field.vol_flux_x(j, 1 + 2 + k);
         }
@@ -568,7 +568,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.vol_flux_x(j, y_max + 2 + k) = field.vol_flux_x(j, y_max - k);
         }
@@ -579,7 +579,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.vol_flux_x(1 - j, k) = -field.vol_flux_x(1 + 2 + j, k);
         }
@@ -590,7 +590,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.vol_flux_x(x_max + j + 1 + 2, k) = -field.vol_flux_x(x_max + 1 - j, k);
         }
@@ -604,7 +604,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.mass_flux_x(j, 1 - k) = field.mass_flux_x(j, 1 + 2 + k);
         }
@@ -615,7 +615,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.mass_flux_x(j, y_max + 2 + k) = field.mass_flux_x(j, y_max - k);
         }
@@ -626,7 +626,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.mass_flux_x(1 - j, k) = -field.mass_flux_x(1 + 2 + j, k);
         }
@@ -637,7 +637,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.mass_flux_x(x_max + j + 1 + 2, k) = -field.mass_flux_x(x_max + 1 - j, k);
         }
@@ -651,7 +651,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.vol_flux_y(j, 1 - k) = -field.vol_flux_y(j, 1 + 2 + k);
         }
@@ -662,7 +662,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.vol_flux_y(j, y_max + k + 1 + 2) = -field.vol_flux_y(j, y_max + 1 - k);
         }
@@ -673,7 +673,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.vol_flux_y(1 - j, k) = field.vol_flux_y(1 + 2 + j, k);
         }
@@ -684,7 +684,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int k) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.vol_flux_y(x_max + 2 + j, k) = field.vol_flux_y(x_max - j, k);
         }
@@ -698,7 +698,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.mass_flux_y(j, 1 - k) = -field.mass_flux_y(j, 1 + 2 + k);
         }
@@ -709,7 +709,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{x_min - depth + 1, x_max + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_DEVICE (int j) {
+         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
         for (int k = 0; k < depth; ++k) {
           field.mass_flux_y(j, y_max + k + 1 + 2) = -field.mass_flux_y(j, y_max + 1 - k);
         }
@@ -720,7 +720,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int k) {
      RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.mass_flux_y(1 - j, k) = field.mass_flux_y(1 + 2 + j, k);
         }
@@ -731,7 +731,7 @@ void update_halo_kernel(int x_min, int x_max, int y_min, int y_max, const std::a
 
 //      clover::par_ranged1(Range1d{y_min - depth + 1, y_max + 1 + depth + 2}, [=] DEVICE_KERNEL(int k) {
      RAJA::forall<raja_default_policy>(
-         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_DEVICE (int k) {
+         RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE (int k) {
         for (int j = 0; j < depth; ++j) {
           field.mass_flux_y(x_max + 2 + j, k) = field.mass_flux_y(x_max - j, k);
         }
