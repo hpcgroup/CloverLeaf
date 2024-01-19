@@ -79,10 +79,12 @@ struct context {};
 
 template <typename T> static inline T *alloc(size_t count) {
   static auto& rm = umpire::ResourceManager::getInstance();
-#ifdef CLOVER_MANAGED_ALLOC
+#if defined(CLOVER_MANAGED_ALLOC)
   auto alloc = rm.getAllocator(CLResourceManager::allocator_ids[CLResourceManager::UM]);
-#else
+#elif defined(RAJA_TARGET_GPU)
   auto alloc = rm.getAllocator(CLResourceManager::allocator_ids[CLResourceManager::DEVICE]);
+#else
+  auto alloc = rm.getAllocator(CLResourceManager::allocator_ids[CLResourceManager::HOST]);
 #endif
 
   T* p = static_cast<T*>(alloc.allocate(count * sizeof(T)));
@@ -187,6 +189,7 @@ void raja_copy(T* dest, T* src, size_t bytes){
 }
 
 
+#if defined(RAJA_TARGET_GPU)
 #if defined(RAJA_ENABLE_CUDA)
 using raja_default_policy= RAJA::cuda_exec<RAJA_BLOCK_SIZE>;
 using reduce_policy = RAJA::cuda_reduce;
@@ -291,7 +294,7 @@ static inline rajaError_t rajaGetDeviceCount(int *count){
   * https://github.com/LLNL/RAJA/pull/1574. Right now the support for the RAJA
   * SYCL backend is a WIP.
 */
-using raja_default_policy= RAJA::sycl_exec<RAJA_BLOCK_SIZE>;
+using raja_default_policy = RAJA::sycl_exec<RAJA_BLOCK_SIZE>;
 using reduce_policy = RAJA::sycl_reduce;
 
 using KERNEL_EXEC_POL = RAJA::KernelPolicy<
@@ -308,4 +311,51 @@ using KERNEL_EXEC_POL = RAJA::KernelPolicy<
       >
     >;
 
+#endif
+#endif
+
+#if defined(RAJA_TARGET_CPU)
+using rajaError_t = bool;
+namespace clover{
+static inline void checkError(const bool err) {
+  /* No-Op */
+}
+}
+
+static inline rajaError_t rajaDeviceSynchronize() {
+  return true;
+}
+
+#if defined(RAJA_ENABLE_OPENMP)
+using raja_default_policy = RAJA::omp_parallel_for_exec;
+using reduce_policy = RAJA::omp_reduce;
+
+using KERNEL_EXEC_POL = RAJA::KernelPolicy<
+    RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::omp_parallel_for_exec,
+      RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::seq_exec,
+        RAJA::statement::For<1, RAJA::omp_parallel_for_exec,
+          RAJA::statement::For<0, RAJA::seq_exec,
+            RAJA::statement::Lambda<0>
+          >
+        >
+      >
+    >
+  >;
+
+#else
+using raja_default_policy = RAJA::seq_exec;
+using reduce_policy = RAJA::seq_reduce;
+
+using KERNEL_EXEC_POL = RAJA::KernelPolicy<
+    RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::seq_exec,
+      RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::seq_exec,
+        RAJA::statement::For<1, RAJA::seq_exec,
+          RAJA::statement::For<0, RAJA::seq_exec,
+            RAJA::statement::Lambda<0>
+          >
+        >
+      >
+    >
+  >;
+#endif
 #endif

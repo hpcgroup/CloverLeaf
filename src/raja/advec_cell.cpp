@@ -80,7 +80,11 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
         downwind = j;
         dif = donor;
       } else {
+      #if defined(RAJA_TARGET_CPU)
+        upwind = std::min(j + 1, x_max + 2);
+      #else
         upwind = min(j + 1, x_max + 2); // XXX can't do std::min because CUDA
+      #endif
         donor = j;
         downwind = j - 1;
         dif = upwind;
@@ -182,7 +186,11 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
         downwind = k;
         dif = donor;
       } else {
+      #if defined(RAJA_TARGET_CPU)
+        upwind = std::min(k + 1, y_max + 2); // XXX can't do std::min because CUDA
+      #else
         upwind = min(k + 1, y_max + 2); // XXX can't do std::min because CUDA
+      #endif
         donor = k;
         downwind = k - 1;
         dif = upwind;

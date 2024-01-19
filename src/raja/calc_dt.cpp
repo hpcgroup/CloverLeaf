@@ -31,7 +31,7 @@
 //  condition, the velocity gradient and the velocity divergence. A safety
 //  factor is used to ensure numerical stability.
 
-__device__ inline double SUM(double a, double b) { return a + b; }
+RAJA_HOST_DEVICE inline double SUM(double a, double b) { return a + b; }
 
 void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, int y_max, double dtmin, double dtc_safe, double dtu_safe,
     double dtv_safe, double dtdiv_safe, clover::Buffer2D<double> &xarea, clover::Buffer2D<double> &yarea,
