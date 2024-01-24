@@ -25,8 +25,10 @@
 //  @details Invoked the users specified chunk generator.
 
 #include "generate_chunk.h"
+#include "../../driver/timer.h"
 
 void generate_chunk(const int tile, global_variables &globals) {
+  double start_time = timer();
 
   // Need to copy the host array of state input data into a device array
   // XXX This probably doesn't need ViewAllocateWithoutInitializing because of how small `globals.number_of_states` is.
@@ -77,6 +79,8 @@ void generate_chunk(const int tile, global_variables &globals) {
   Kokkos::deep_copy(state_ymax, hm_state_ymax);
   Kokkos::deep_copy(state_radius, hm_state_radius);
   Kokkos::deep_copy(state_geometry, hm_state_geometry);
+
+  globals.profiler.host_to_device += timer() - start_time;
 
   const int x_min = globals.chunk.tiles[tile].info.t_xmin;
   const int x_max = globals.chunk.tiles[tile].info.t_xmax;

@@ -30,7 +30,7 @@
 #include <cmath>
 
 void generate_chunk(const int tile, global_variables &globals) {
-  // We always wan to time this, even though it's during startup, when most
+  // We always want to time this, even though it's during startup, when most
   // of the timers are turned off
   double start_time = timer();
 
