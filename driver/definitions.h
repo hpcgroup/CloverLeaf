@@ -236,6 +236,7 @@ struct global_config {
   bool profiler_on;
   double end_time;
   int end_step;
+  int warmup_steps = 0;
 
   double dtinit;
   double dtmin;

@@ -187,6 +187,7 @@ global_variables initialise(parallel_ &parallel, const std::vector<std::string> 
 
   //	globals.step = 0;
   config.number_of_chunks = parallel.max_task;
+  config.warmup_steps = model.args.warmup_steps;
 
   auto globals = start(parallel, config, model.context);
   clover_barrier(globals);

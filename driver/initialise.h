@@ -35,6 +35,7 @@ struct run_args {
   std::string outFile;
   staging_buffer staging_buffer;
   std::optional<bool> profile;
+  int warmup_steps = 0;
 };
 
 struct model {
@@ -68,6 +69,7 @@ std::pair<T, run_args> list_and_parse(bool silent, const std::vector<T> &devices
         << "                                         Defaults to auto which elides the buffer if a device-aware (i.e CUDA-aware) is used.\n"
         << "                                         This option is no-op for CPU-only models.\n"
         << "                                         Setting this to false on an MPI that is not device-aware may cause a segfault.\n"
+        << "      --warmup,-w               <NUM>    Treat the first NUM iterations as warmup iterations and exclude them from all timing\n"
         << std::endl;
   };
 
@@ -146,6 +148,8 @@ std::pair<T, run_args> list_and_parse(bool silent, const std::vector<T> &devices
           std::exit(EXIT_FAILURE);
         }
       });
+    } else if (arg == "--warmup" || arg == "-w") {
+      readParam(i, "--warmup,-w specified but no number given", [&config](const auto &param) { config.warmup_steps = std::stoi(param); });
     } else {
       std::cerr << "Unknown argument: " << arg << std::endl;
       printHelp();
