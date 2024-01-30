@@ -25,9 +25,13 @@
 //  @details Invoked the users specified chunk generator.
 
 #include "generate_chunk.h"
+#include "../../driver/timer.h"
 #include <cmath>
 
 void generate_chunk(const int tile, global_variables &globals) {
+  // We always want to time this, even though it's during startup, when most
+  // of the timers are turned off
+  double start_time = timer();
 
   // Need to copy the host array of state input data into a device array
   clover::Buffer1D<double> state_density_buffer(globals.context, globals.config.number_of_states);
@@ -54,6 +58,8 @@ void generate_chunk(const int tile, global_variables &globals) {
     state_radius_buffer[state] = globals.config.states[state].radius;
     state_geometry_buffer[state] = globals.config.states[state].geometry;
   }
+
+  globals.profiler.host_to_device += timer() - start_time;
 
   // Kokkos::deep_copy (TO, FROM)
 

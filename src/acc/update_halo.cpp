@@ -819,13 +819,13 @@ void update_halo(global_variables &globals, int fields[NUM_FIELDS], int depth) {
   update_tile_halo(globals, fields, depth);
   if (globals.profiler_on) {
     globals.profiler.tile_halo_exchange += timer() - kernel_time;
-    kernel_time = timer();
+    globals.profiler.kernel_time = timer();
   }
 
   clover_exchange(globals, fields, depth);
 
   if (globals.profiler_on) {
-    globals.profiler.mpi_halo_exchange += timer() - kernel_time;
+    globals.profiler.mpi_halo_exchange += timer() - globals.profiler.kernel_time;
     kernel_time = timer();
   }
 
