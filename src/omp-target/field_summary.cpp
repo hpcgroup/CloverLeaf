@@ -82,9 +82,22 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
     double *pressure = field.pressure.data;
     double *xvel0 = field.xvel0.data;
     double *yvel0 = field.yvel0.data;
+  
+    if (globals.profiler_on) {
+      globals.profiler.summary += timer() - kernel_time;
+      kernel_time = timer();
+    }
 
-#pragma omp target teams distribute parallel for simd clover_use_target(globals.context.use_target) map(tofrom : vol) map(tofrom : mass)   \
-    map(tofrom : ie) map(tofrom : ke) map(tofrom : press) reduction(+ : vol, mass, ie, ke, press)
+#pragma omp target enter data map(to : vol) map(to : mass)   \
+    map(to : ie) map(to : ke) map(to : press)
+
+    if (globals.profiler_on) {
+      globals.profiler.host_to_device += timer() - kernel_time;
+      kernel_time = timer();
+    }
+
+#pragma omp target teams distribute parallel for simd clover_use_target(globals.context.use_target) map(to : vol) map(to : mass)   \
+    map(to : ie) map(to : ke) map(to : press) reduction(+ : vol, mass, ie, ke, press)
     for (int idx = 0; idx < ((ymax - ymin + 1) * (xmax - xmin + 1)); idx++) {
       const int j = xmin + 1 + idx % (xmax - xmin + 1);
       const int k = ymin + 1 + idx / (xmax - xmin + 1);
@@ -103,7 +116,22 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
       ke += cell_mass * 0.5 * vsqrd;
       press += cell_vol * pressure[j + (k)*base_stride];
     }
+    
+    if (globals.profiler_on) {
+      globals.profiler.summary += timer() - kernel_time;
+      kernel_time = timer();
+    }
+
+#pragma omp target exit data map(from : vol) map(from : mass)   \
+    map(from : ie) map(from : ke) map(from : press)
+  
+    if (globals.profiler_on) {
+      globals.profiler.device_to_host += timer() - kernel_time;
+      kernel_time = timer();
+    }
   }
+  
+
 
 #if SYNC_BUFFERS
   globals.deviceToHost();

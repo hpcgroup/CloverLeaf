@@ -18,6 +18,7 @@
  */
 
 #include "calc_dt.h"
+#include "../../driver/timer.h"
 #include <string>
 
 #include <cmath>
@@ -28,7 +29,7 @@
 //  condition, the velocity gradient and the velocity divergence. A safety
 //  factor is used to ensure numerical stability.
 
-void calc_dt_kernel(bool use_target, int x_min, int x_max, int y_min, int y_max, double dtmin, double dtc_safe, double dtu_safe,
+void calc_dt_kernel(global_variables &globals, bool use_target, int x_min, int x_max, int y_min, int y_max, double dtmin, double dtc_safe, double dtu_safe,
                     double dtv_safe, double dtdiv_safe, field_type &field, double &dt_min_val, int &dtl_control, double &xl_pos,
                     double &yl_pos, int &jldt, int &kldt, int &small) {
 
@@ -56,6 +57,18 @@ void calc_dt_kernel(bool use_target, int x_min, int x_max, int y_min, int y_max,
   double *soundspeed = field.soundspeed.data;
   double *xvel0 = field.xvel0.data;
   double *yvel0 = field.yvel0.data;
+
+  if (globals.profiler_on) {
+    globals.profiler.timestep += timer() - globals.profiler.kernel_time;
+    globals.profiler.kernel_time = timer();
+  }
+
+#pragma omp target enter data map(to : dt_min_val)
+  
+  if (globals.profiler_on) {
+    globals.profiler.host_to_device += timer() - globals.profiler.kernel_time;
+    globals.profiler.kernel_time = timer();
+  }
 
   // XXX See https://forums.developer.nvidia.com/t/nvc-f-0000-internal-compiler-error-unhandled-size-for-preparing-max-constant/221740
   double dt_min_val0 = dt_min_val;
@@ -91,6 +104,19 @@ void calc_dt_kernel(bool use_target, int x_min, int x_max, int y_min, int y_max,
       dt_min_val0 = fmin(mins, dt_min_val0);
     }
   }
+  
+  if (globals.profiler_on) {
+    globals.profiler.timestep += timer() - globals.profiler.kernel_time;
+    globals.profiler.kernel_time = timer();
+  }
+
+#pragma omp target exit data map(from : dt_min_val)
+  
+  if (globals.profiler_on) {
+    globals.profiler.device_to_host += timer() - globals.profiler.kernel_time;
+    globals.profiler.kernel_time = timer();
+  }
+  
   dt_min_val = dt_min_val0;
 
   dtl_control = static_cast<int>(10.01 * (jk_control - static_cast<int>(jk_control)));
@@ -142,7 +168,7 @@ void calc_dt(global_variables &globals, int tile, double &local_dt, std::string 
 #endif
 
   tile_type &t = globals.chunk.tiles[tile];
-  calc_dt_kernel(globals.context.use_target, t.info.t_xmin, t.info.t_xmax, t.info.t_ymin, t.info.t_ymax, globals.config.dtmin,
+  calc_dt_kernel(globals, globals.context.use_target, t.info.t_xmin, t.info.t_xmax, t.info.t_ymin, t.info.t_ymax, globals.config.dtmin,
                  globals.config.dtc_safe, globals.config.dtu_safe, globals.config.dtv_safe, globals.config.dtdiv_safe, t.field, local_dt,
                  l_control, xl_pos, yl_pos, jldt, kldt, small);
 
