@@ -34,7 +34,6 @@
 #include "comms_kernel.h"
 #include "comms.h"
 #include "pack_kernel.h"
-#include "../../driver/timer.h"
 
 void clover_allocate_buffers(global_variables &globals, parallel_ &parallel) {
 
@@ -111,20 +110,10 @@ void clover_exchange(global_variables &globals, const int fields[NUM_FIELDS], co
 
   bool stage = globals.config.staging_buffer;
 
-  if (globals.profiler_on) {
-    globals.profiler.mpi_halo_exchange += timer() - globals.profiler.kernel_time;
-    globals.profiler.kernel_time = timer();
-  }
-
 #pragma acc enter data create(left_rcv[ : left_rcv_buffer.N()]) create(left_snd[ : left_snd_buffer.N()])                  \
     create(right_rcv[ : right_rcv_buffer.N()]) create(right_snd[ : right_snd_buffer.N()])                                        \
     create(top_rcv[ : top_rcv_buffer.N()]) create(top_snd[ : top_snd_buffer.N()])                                                \
     create(bottom_rcv[ : bottom_rcv_buffer.N()]) create(bottom_snd[ : bottom_snd_buffer.N()])
-
-  if (globals.profiler_on) {
-    globals.profiler.host_to_device += timer() - globals.profiler.kernel_time;
-    globals.profiler.kernel_time = timer();
-  }
 
   if (globals.chunk.chunk_neighbours[chunk_left] != external_face) {
     // do left exchanges

@@ -82,9 +82,21 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
     double *pressure = field.pressure.data;
     double *xvel0 = field.xvel0.data;
     double *yvel0 = field.yvel0.data;
+    
+    if (globals.profiler_on) {
+      globals.profiler.summary += timer() - kernel_time;
+      kernel_time = timer();
+    }
+
+#pragma acc enter data copyin(vol, mass, ie, ke, press)
+    
+    if (globals.profiler_on) {
+      globals.profiler.host_to_device += timer() - kernel_time;
+      kernel_time = timer();
+    }
 
 #pragma acc parallel loop gang worker vector clover_use_target(globals.context.use_target) \
-    copy(vol, mass, ie, ke, press) reduction(+ : vol, mass, ie, ke, press)                 \
+    present(vol, mass, ie, ke, press) reduction(+ : vol, mass, ie, ke, press)                 \
     present(volume[ : field.volume.N()], density0[ : field.density0.N()],                  \
             energy0[ : field.energy0.N()], pressure[ : field.pressure.N()],                \
             xvel0[ : field.xvel0.N()], yvel0[ : field.yvel0.N()])
@@ -105,6 +117,18 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
       ie += cell_mass * energy0[j + (k)*base_stride];
       ke += cell_mass * 0.5 * vsqrd;
       press += cell_vol * pressure[j + (k)*base_stride];
+    }
+    
+    if (globals.profiler_on) {
+      globals.profiler.summary += timer() - kernel_time;
+      kernel_time = timer();
+    }
+
+#pragma acc exit data copyout(vol, mass, ie, ke, press)
+
+    if (globals.profiler_on) {
+      globals.profiler.device_to_host += timer() - kernel_time;
+      kernel_time = timer();
     }
   }
 
