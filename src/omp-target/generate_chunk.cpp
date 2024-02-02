@@ -25,6 +25,7 @@
 //  @details Invoked the users specified chunk generator.
 
 #include "generate_chunk.h"
+#include "../../driver/timer.h"
 #include <cmath>
 
 void generate_chunk(const int tile, global_variables &globals) {
@@ -111,6 +112,17 @@ void generate_chunk(const int tile, global_variables &globals) {
     const double *state_ymax = state_ymax_buffer.data;
     const double *state_radius = state_radius_buffer.data;
     const int *state_geometry = state_geometry_buffer.data;
+
+    double kernel_time = timer();
+
+#pragma omp target enter data\
+    map(to : state_density[ : state_density_buffer.N()]) map(to : state_energy[ : state_energy_buffer.N()])                                \
+    map(to : state_xvel[ : state_xvel_buffer.N()]) map(to : state_yvel[ : state_yvel_buffer.N()])                                          \
+    map(to : state_xmin[ : state_xmin_buffer.N()]) map(to : state_xmax[ : state_xmax_buffer.N()])                                          \
+    map(to : state_ymin[ : state_ymin_buffer.N()]) map(to : state_ymax[ : state_ymax_buffer.N()])                                          \
+    map(to : state_radius[ : state_radius_buffer.N()]) map(to : state_geometry[ : state_geometry_buffer.N()])
+
+    globals.profiler.host_to_device += timer() - kernel_time;
 
 #pragma omp target teams distribute parallel for simd collapse(2) clover_use_target(globals.context.use_target)                            \
     map(to : state_density[ : state_density_buffer.N()]) map(to : state_energy[ : state_energy_buffer.N()])                                \
