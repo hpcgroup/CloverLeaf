@@ -40,7 +40,12 @@ struct context {
 template <typename T> struct Buffer1D {
   size_t size;
   T *data;
-  explicit Buffer1D(context &ctx, size_t size) : size(size), data(sycl::malloc_shared<T>(size, ctx.queue)) {}
+  sycl::queue *queue;
+#ifdef CLOVER_MANAGED_ALLOC
+  explicit Buffer1D(context &ctx, size_t size) : size(size), data(sycl::malloc_shared<T>(size, ctx.queue)), queue(&ctx.queue) {}
+#else
+  explicit Buffer1D(context &ctx, size_t size) : size(size), data(sycl::malloc_device<T>(size, ctx.queue)), queue(&ctx.queue) {}
+#endif
   T &operator[](size_t i) const { return data[i]; }
 
   template <size_t D> [[nodiscard]] size_t extent() const {
@@ -50,7 +55,7 @@ template <typename T> struct Buffer1D {
 
   std::vector<T> mirrored() const {
     std::vector<T> buffer(size);
-    std::copy(data, data + buffer.size(), buffer.begin());
+    queue->memcpy(buffer.data(), data, sizeof(T) * size);
     return buffer;
   }
 };
@@ -58,7 +63,12 @@ template <typename T> struct Buffer1D {
 template <typename T> struct Buffer2D {
   size_t sizeX, sizeY;
   T *data;
-  Buffer2D(context &ctx, size_t sizeX, size_t sizeY) : sizeX(sizeX), sizeY(sizeY), data(sycl::malloc_shared<T>(sizeX * sizeY, ctx.queue)) {}
+  sycl::queue *queue;
+#ifdef CLOVER_MANAGED_ALLOC
+  Buffer2D(context &ctx, size_t sizeX, size_t sizeY) : sizeX(sizeX), sizeY(sizeY), data(sycl::malloc_shared<T>(sizeX * sizeY, ctx.queue)), queue(&ctx.queue) {}
+#else
+  Buffer2D(context &ctx, size_t sizeX, size_t sizeY) : sizeX(sizeX), sizeY(sizeY), data(sycl::malloc_device<T>(sizeX * sizeY, ctx.queue)), queue(&ctx.queue) {}
+#endif
   T &operator()(size_t i, size_t j) const { return data[i + j * sizeX]; }
 
   template <size_t D> [[nodiscard]] size_t extent() const {
@@ -73,7 +83,7 @@ template <typename T> struct Buffer2D {
 
   std::vector<T> mirrored() const {
     std::vector<T> buffer(sizeX * sizeY);
-    std::copy(data, data + buffer.size(), buffer.begin());
+    queue->memcpy(buffer.data(), data, sizeof(T) * sizeX * sizeY);
     return buffer;
   }
   clover::BufferMirror2D<T> mirrored2() { return {mirrored(), extent<0>(), extent<1>()}; }

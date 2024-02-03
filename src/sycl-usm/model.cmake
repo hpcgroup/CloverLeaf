@@ -30,6 +30,8 @@ register_flag_optional(USE_HOSTTASK
         "Whether to use SYCL2020 host_task for MPI related calls or fallback to queue.wait() not all SYCL compilers support this"
         "OFF")
 
+register_flag_optional(MANAGED_ALLOC "Use UVM (cudaMallocManaged) instead of the device-only allocation (cudaMalloc)"
+        "OFF")
 
 register_flag_optional(OpenCL_LIBRARY
         "[ComputeCpp only] Path to OpenCL library, usually called libOpenCL.so"
@@ -95,6 +97,10 @@ macro(setup)
         register_append_link_flags(-fsycl)
     else ()
         message(FATAL_ERROR "SYCL_COMPILER=${SYCL_COMPILER} is unsupported")
+    endif ()
+
+    if (MANAGED_ALLOC)
+        register_definitions(CLOVER_MANAGED_ALLOC)
     endif ()
 
     list(APPEND IMPL_SOURCES

@@ -30,6 +30,7 @@
 void generate_chunk(const int tile, global_variables &globals) {
 
   // Need to copy the host array of state input data into a device array
+#ifdef CLOVERLEAF_MANAGED_ALLOC
   clover::Buffer1D<double> state_density(globals.context, globals.config.number_of_states);
   clover::Buffer1D<double> state_energy(globals.context, globals.config.number_of_states);
   clover::Buffer1D<double> state_xvel(globals.context, globals.config.number_of_states);
@@ -54,6 +55,54 @@ void generate_chunk(const int tile, global_variables &globals) {
     state_radius[state] = globals.config.states[state].radius;
     state_geometry[state] = globals.config.states[state].geometry;
   }
+#else
+  std::vector<double> state_density_vec(globals.config.number_of_states);
+  std::vector<double> state_energy_vec(globals.config.number_of_states);
+  std::vector<double> state_xvel_vec(globals.config.number_of_states);
+  std::vector<double> state_yvel_vec(globals.config.number_of_states);
+  std::vector<double> state_xmin_vec(globals.config.number_of_states);
+  std::vector<double> state_xmax_vec(globals.config.number_of_states);
+  std::vector<double> state_ymin_vec(globals.config.number_of_states);
+  std::vector<double> state_ymax_vec(globals.config.number_of_states);
+  std::vector<double> state_radius_vec(globals.config.number_of_states);
+  std::vector<int> state_geometry_vec(globals.config.number_of_states);
+
+  // Copy the data to the new views
+  for (int state = 0; state < globals.config.number_of_states; ++state) {
+    state_density_vec[state] = globals.config.states[state].density;
+    state_energy_vec[state] = globals.config.states[state].energy;
+    state_xvel_vec[state] = globals.config.states[state].xvel;
+    state_yvel_vec[state] = globals.config.states[state].yvel;
+    state_xmin_vec[state] = globals.config.states[state].xmin;
+    state_xmax_vec[state] = globals.config.states[state].xmax;
+    state_ymin_vec[state] = globals.config.states[state].ymin;
+    state_ymax_vec[state] = globals.config.states[state].ymax;
+    state_radius_vec[state] = globals.config.states[state].radius;
+    state_geometry_vec[state] = globals.config.states[state].geometry;
+  }
+
+  clover::Buffer1D<double> state_density(globals.context, globals.config.number_of_states);
+  clover::Buffer1D<double> state_energy(globals.context, globals.config.number_of_states);
+  clover::Buffer1D<double> state_xvel(globals.context, globals.config.number_of_states);
+  clover::Buffer1D<double> state_yvel(globals.context, globals.config.number_of_states);
+  clover::Buffer1D<double> state_xmin(globals.context, globals.config.number_of_states);
+  clover::Buffer1D<double> state_xmax(globals.context, globals.config.number_of_states);
+  clover::Buffer1D<double> state_ymin(globals.context, globals.config.number_of_states);
+  clover::Buffer1D<double> state_ymax(globals.context, globals.config.number_of_states);
+  clover::Buffer1D<double> state_radius(globals.context, globals.config.number_of_states);
+  clover::Buffer1D<int> state_geometry(globals.context, globals.config.number_of_states);
+
+  globals.context.queue.memcpy(state_density.data, state_density_vec.data(), sizeof(double) * globals.config.number_of_states);
+  globals.context.queue.memcpy(state_energy.data, state_energy_vec.data(), sizeof(double) * globals.config.number_of_states);
+  globals.context.queue.memcpy(state_xvel.data, state_xvel_vec.data(), sizeof(double) * globals.config.number_of_states);
+  globals.context.queue.memcpy(state_yvel.data, state_yvel_vec.data(), sizeof(double) * globals.config.number_of_states);
+  globals.context.queue.memcpy(state_xmin.data, state_xmin_vec.data(), sizeof(double) * globals.config.number_of_states);
+  globals.context.queue.memcpy(state_xmax.data, state_xmax_vec.data(), sizeof(double) * globals.config.number_of_states);
+  globals.context.queue.memcpy(state_ymin.data, state_ymin_vec.data(), sizeof(double) * globals.config.number_of_states);
+  globals.context.queue.memcpy(state_ymax.data, state_ymax_vec.data(), sizeof(double) * globals.config.number_of_states);
+  globals.context.queue.memcpy(state_radius.data, state_radius_vec.data(), sizeof(double) * globals.config.number_of_states);
+  globals.context.queue.memcpy(state_geometry.data, state_geometry_vec.data(), sizeof(int) * globals.config.number_of_states);
+#endif
 
   // Kokkos::deep_copy (TO, FROM)
 
