@@ -102,6 +102,8 @@ void generate_chunk(const int tile, global_variables &globals) {
   globals.context.queue.memcpy(state_ymax.data, state_ymax_vec.data(), sizeof(double) * globals.config.number_of_states);
   globals.context.queue.memcpy(state_radius.data, state_radius_vec.data(), sizeof(double) * globals.config.number_of_states);
   globals.context.queue.memcpy(state_geometry.data, state_geometry_vec.data(), sizeof(int) * globals.config.number_of_states);
+
+  globals.config.queue.wait();
 #endif
 
   // Kokkos::deep_copy (TO, FROM)
