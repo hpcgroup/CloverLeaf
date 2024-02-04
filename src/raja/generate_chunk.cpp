@@ -26,6 +26,7 @@
 
 #include "generate_chunk.h"
 #include "context.h"
+#include "timer.h"
 #include <cmath>
 
 #include <umpire/Allocator.hpp>
@@ -41,6 +42,8 @@ void generate_chunk(const int tile, global_variables &globals) {
   umpire::Allocator alloc = rm.getAllocator("HOST");
   umpire::TypedAllocator<double> int_vector_allocator(alloc);
   umpire::TypedAllocator<double> double_vector_allocator(alloc);
+  
+  double kernel_time = timer();
 
   std::vector<double, umpire::TypedAllocator<double>> state_density_vec(globals.config.number_of_states, double_vector_allocator);
   std::vector<double, umpire::TypedAllocator<double>> state_energy_vec(globals.config.number_of_states, double_vector_allocator);
@@ -78,6 +81,8 @@ void generate_chunk(const int tile, global_variables &globals) {
   clover::Buffer1D<double> state_ymax(globals.context, globals.config.number_of_states, state_ymax_vec.data());
   clover::Buffer1D<double> state_radius(globals.context, globals.config.number_of_states, state_radius_vec.data());
   clover::Buffer1D<int> state_geometry(globals.context, globals.config.number_of_states, state_geometry_vec.data());
+
+  globals.profiler.host_to_device += timer() - kernel_time;
 
   const int x_min = globals.chunk.tiles[tile].info.t_xmin;
   const int x_max = globals.chunk.tiles[tile].info.t_xmax;
