@@ -26,8 +26,10 @@
 
 #include "generate_chunk.h"
 #include "context.h"
+#include "timer.h"
 
 void generate_chunk(const int tile, global_variables &globals) {
+  double kernel_time = timer();
 
   // Need to copy the host array of state input data into a device array
 #ifdef CLOVERLEAF_MANAGED_ALLOC
@@ -103,8 +105,10 @@ void generate_chunk(const int tile, global_variables &globals) {
   globals.context.queue.memcpy(state_radius.data, state_radius_vec.data(), sizeof(double) * globals.config.number_of_states);
   globals.context.queue.memcpy(state_geometry.data, state_geometry_vec.data(), sizeof(int) * globals.config.number_of_states);
 
-  globals.config.queue.wait();
+  globals.context.queue.wait();
 #endif
+
+  globals.profiler.host_to_device = timer() - kernel_time;
 
   // Kokkos::deep_copy (TO, FROM)
 
