@@ -98,7 +98,11 @@ void calc_dt_kernel(clover::context &ctx, int x_min, int x_max, int y_min, int y
       })
       .wait_and_throw();
   ctx.queue.wait_and_throw();
+#ifdef CLOVER_MANAGED_ALLOC
   dt_min_val = minResults[0];
+#else
+  dt_min_val = minResults.mirrored()[0];
+#endif
   clover::free(ctx.queue, minResults);
 
   dtl_control = static_cast<int>(10.01 * (jk_control - static_cast<int>(jk_control)));
