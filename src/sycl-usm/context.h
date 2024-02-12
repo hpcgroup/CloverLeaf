@@ -84,6 +84,7 @@ template <typename T> struct Buffer2D {
   std::vector<T> mirrored() const {
     std::vector<T> buffer(sizeX * sizeY);
     queue->memcpy(buffer.data(), data, sizeof(T) * sizeX * sizeY);
+    queue->wait();
     return buffer;
   }
   clover::BufferMirror2D<T> mirrored2() { return {mirrored(), extent<0>(), extent<1>()}; }
