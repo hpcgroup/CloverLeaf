@@ -29,6 +29,7 @@
 #include <cmath>
 
 void generate_chunk(const int tile, global_variables &globals) {
+  double kernel_time = timer();
 
   // Need to copy the host array of state input data into a device array
   clover::Buffer1D<double> state_density_buffer(globals.context, globals.config.number_of_states);
@@ -41,7 +42,7 @@ void generate_chunk(const int tile, global_variables &globals) {
   clover::Buffer1D<double> state_ymax_buffer(globals.context, globals.config.number_of_states);
   clover::Buffer1D<double> state_radius_buffer(globals.context, globals.config.number_of_states);
   clover::Buffer1D<int> state_geometry_buffer(globals.context, globals.config.number_of_states);
-
+    
   // Copy the data to the new views
   for (int state = 0; state < globals.config.number_of_states; ++state) {
     state_density_buffer[state] = globals.config.states[state].density;
@@ -55,6 +56,8 @@ void generate_chunk(const int tile, global_variables &globals) {
     state_radius_buffer[state] = globals.config.states[state].radius;
     state_geometry_buffer[state] = globals.config.states[state].geometry;
   }
+
+  globals.profiler.host_to_device += timer() - kernel_time;
 
   // Kokkos::deep_copy (TO, FROM)
 
