@@ -28,7 +28,6 @@
 #include "../../driver/timer.h"
 
 void generate_chunk(const int tile, global_variables &globals) {
-  double start_time = timer();
 
   // Need to copy the host array of state input data into a device array
   // XXX This probably doesn't need ViewAllocateWithoutInitializing because of how small `globals.number_of_states` is.
@@ -54,6 +53,8 @@ void generate_chunk(const int tile, global_variables &globals) {
   typename Kokkos::View<double *>::HostMirror hm_state_ymax = Kokkos::create_mirror_view(state_ymax);
   typename Kokkos::View<double *>::HostMirror hm_state_radius = Kokkos::create_mirror_view(state_radius);
   typename Kokkos::View<int *>::HostMirror hm_state_geometry = Kokkos::create_mirror_view(state_geometry);
+
+  double start_time = timer();
 
   // Copy the data to the new views
   for (int state = 0; state < globals.config.number_of_states; ++state) {
