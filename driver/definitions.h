@@ -237,6 +237,7 @@ struct global_config {
   double end_time;
   int end_step;
   int warmup_steps = 0;
+  bool using_csv;
 
   double dtinit;
   double dtmin;

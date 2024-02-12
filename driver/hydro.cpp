@@ -30,6 +30,7 @@
 #include "visit.h"
 
 extern std::ostream g_out;
+extern std::ostream csv_out;
 
 int maxloc(const std::vector<double> &totals, const int len) {
   int loc = -1;
@@ -216,6 +217,23 @@ void hydro(global_variables &globals, parallel_ &parallel) {
           };
           writeProfile(g_out);
           writeProfile(std::cout);
+
+          if (globals.config.using_csv) {
+            std::cout << "Saving timings to CSV\n" << std::endl;
+            csv_out << "timestep,ideal_gas,viscosity,PdV,revert,acceleration,"
+                    << "fluxes,cell_advection,mom_advection,reset,summary,"
+                    << "visits,tile_halo_exchange,self_halo_exchange,mpi_halo_exchange,"
+                    << "total_kernel,host_to_device,device_to_host,other" << std::endl
+                    << 1000 * p.timestep << "," << 1000 * p.ideal_gas << ","
+                    << 1000 * p.PdV << "," << 1000 * p.revert << ","
+                    << 1000 * p.acceleration << "," << 1000 * p.flux << ","
+                    << 1000 * p.cell_advection << "," << 1000 * p.mom_advection << ","
+                    << 1000 * p.reset << "," << 1000 * p.summary << "," << 1000 * p.visit << ","
+                    << 1000 * p.tile_halo_exchange << "," << 1000 * p.self_halo_exchange << ","
+                    << 1000 * p.mpi_halo_exchange << "," << 1000 * kernel_total << ","
+                    << 1000 * p.host_to_device << "," << 1000 * p.device_to_host << ","
+                    << 1000 * remainder << std::endl;
+          }
         }
       }
 

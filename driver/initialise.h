@@ -36,6 +36,7 @@ struct run_args {
   staging_buffer staging_buffer;
   std::optional<bool> profile;
   int warmup_steps = 0;
+  std::string csv_file;
 };
 
 struct model {
@@ -70,6 +71,7 @@ std::pair<T, run_args> list_and_parse(bool silent, const std::vector<T> &devices
         << "                                         This option is no-op for CPU-only models.\n"
         << "                                         Setting this to false on an MPI that is not device-aware may cause a segfault.\n"
         << "      --warmup,-w               <NUM>    Treat the first NUM iterations as warmup iterations and exclude them from all timing\n"
+        << "      --csv,-c                 <FILE>    Path to a CSV file FILE in which to save timing information\n"
         << std::endl;
   };
 
@@ -150,6 +152,8 @@ std::pair<T, run_args> list_and_parse(bool silent, const std::vector<T> &devices
       });
     } else if (arg == "--warmup" || arg == "-w") {
       readParam(i, "--warmup,-w specified but no number given", [&config](const auto &param) { config.warmup_steps = std::stoi(param); });
+    } else if (arg == "--csv" || arg == "-c") {
+      readParam(i, "--csv,-c specified but no path was given", [&config](const auto &param) { config.csv_file = param; });
     } else {
       std::cerr << "Unknown argument: " << arg << std::endl;
       printHelp();
