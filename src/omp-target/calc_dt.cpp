@@ -105,6 +105,18 @@ void calc_dt_kernel(global_variables &globals, bool use_target, int x_min, int x
     }
   }
   
+  if (globals.profiler_on) {
+    globals.profiler.timestep += timer() - globals.profiler.kernel_time;
+    globals.profiler.kernel_time = timer();
+  }
+
+#pragma omp target exit data map(from : dt_min_val)
+  
+  if (globals.profiler_on) {
+    globals.profiler.device_to_host += timer() - globals.profiler.kernel_time;
+    globals.profiler.kernel_time = timer();
+  }
+  
   dt_min_val = dt_min_val0;
 
   dtl_control = static_cast<int>(10.01 * (jk_control - static_cast<int>(jk_control)));
