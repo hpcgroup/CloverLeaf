@@ -96,7 +96,8 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
       kernel_time = timer();
     }
 
-#pragma omp target teams distribute parallel for simd clover_use_target(globals.context.use_target) reduction(+ : vol, mass, ie, ke, press)
+#pragma omp target teams distribute parallel for simd clover_use_target(globals.context.use_target) map(to : vol) map(to : mass)   \
+    map(to : ie) map(to : ke) map(to : press) reduction(+ : vol, mass, ie, ke, press)
     for (int idx = 0; idx < ((ymax - ymin + 1) * (xmax - xmin + 1)); idx++) {
       const int j = xmin + 1 + idx % (xmax - xmin + 1);
       const int k = ymin + 1 + idx / (xmax - xmin + 1);
