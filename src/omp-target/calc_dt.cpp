@@ -63,54 +63,56 @@ void calc_dt_kernel(global_variables &globals, bool use_target, int x_min, int x
     globals.profiler.kernel_time = timer();
   }
 
-#pragma omp target enter data map(to : dt_min_val)
-  
-  if (globals.profiler_on) {
-    globals.profiler.host_to_device += timer() - globals.profiler.kernel_time;
-    globals.profiler.kernel_time = timer();
-  }
-
-  // XXX See https://forums.developer.nvidia.com/t/nvc-f-0000-internal-compiler-error-unhandled-size-for-preparing-max-constant/221740
   double dt_min_val0 = dt_min_val;
-#pragma omp target teams distribute parallel for simd collapse(2) clover_use_target(use_target) map(to : dt_min_val)                   \
-    reduction(min : dt_min_val0)
-  for (int j = (y_min + 1); j < (y_max + 2); j++) {
-    for (int i = (x_min + 1); i < (x_max + 2); i++) {
-      double dsx = celldx[i];
-      double dsy = celldy[j];
-      double cc = soundspeed[i + j * base_stride] * soundspeed[i + j * base_stride];
-      cc = cc + 2.0 * viscosity[i + j * base_stride] / density0[i + j * base_stride];
-      cc = fmax(sqrt(cc), g_small);
-      double dtct = dtc_safe * fmin(dsx, dsy) / cc;
-      double div = 0.0;
-      double dv1 = (xvel0[i + j * vels_wk_stride] + xvel0[(i + 0) + (j + 1) * vels_wk_stride]) * xarea[i + j * flux_x_stride];
-      double dv2 = (xvel0[(i + 1) + (j + 0) * vels_wk_stride] + xvel0[(i + 1) + (j + 1) * vels_wk_stride]) *
-                   xarea[(i + 1) + (j + 0) * flux_x_stride];
-      div = div + dv2 - dv1;
-      double dtut = dtu_safe * 2.0 * volume[i + j * base_stride] / fmax(fmax(fabs(dv1), fabs(dv2)), g_small * volume[i + j * base_stride]);
-      dv1 = (yvel0[i + j * vels_wk_stride] + yvel0[(i + 1) + (j + 0) * vels_wk_stride]) * yarea[i + j * flux_y_stride];
-      dv2 = (yvel0[(i + 0) + (j + 1) * vels_wk_stride] + yvel0[(i + 1) + (j + 1) * vels_wk_stride]) *
-            yarea[(i + 0) + (j + 1) * flux_y_stride];
-      div = div + dv2 - dv1;
-      double dtvt = dtv_safe * 2.0 * volume[i + j * base_stride] / fmax(fmax(fabs(dv1), fabs(dv2)), g_small * volume[i + j * base_stride]);
-      div = div / (2.0 * volume[i + j * base_stride]);
-      double dtdivt;
-      if (div < -g_small) {
-        dtdivt = dtdiv_safe * (-1.0 / div);
-      } else {
-        dtdivt = g_big;
-      }
-      double mins = fmin(dtct, fmin(dtut, fmin(dtvt, fmin(dtdivt, g_big))));
-      dt_min_val0 = fmin(mins, dt_min_val0);
-    }
-  }
+#pragma omp target data map(tofrom : dt_min_val)
+  {
   
-  if (globals.profiler_on) {
-    globals.profiler.timestep += timer() - globals.profiler.kernel_time;
-    globals.profiler.kernel_time = timer();
-  }
+    if (globals.profiler_on) {
+      globals.profiler.host_to_device += timer() - globals.profiler.kernel_time;
+      globals.profiler.kernel_time = timer();
+    }
 
-#pragma omp target exit data map(from : dt_min_val)
+    // XXX See https://forums.developer.nvidia.com/t/nvc-f-0000-internal-compiler-error-unhandled-size-for-preparing-max-constant/221740
+#pragma omp target teams distribute parallel for simd collapse(2) clover_use_target(use_target)                  \
+      reduction(min : dt_min_val0)
+    for (int j = (y_min + 1); j < (y_max + 2); j++) {
+      for (int i = (x_min + 1); i < (x_max + 2); i++) {
+        double dsx = celldx[i];
+        double dsy = celldy[j];
+        double cc = soundspeed[i + j * base_stride] * soundspeed[i + j * base_stride];
+        cc = cc + 2.0 * viscosity[i + j * base_stride] / density0[i + j * base_stride];
+        cc = fmax(sqrt(cc), g_small);
+        double dtct = dtc_safe * fmin(dsx, dsy) / cc;
+        double div = 0.0;
+        double dv1 = (xvel0[i + j * vels_wk_stride] + xvel0[(i + 0) + (j + 1) * vels_wk_stride]) * xarea[i + j * flux_x_stride];
+        double dv2 = (xvel0[(i + 1) + (j + 0) * vels_wk_stride] + xvel0[(i + 1) + (j + 1) * vels_wk_stride]) *
+                     xarea[(i + 1) + (j + 0) * flux_x_stride];
+        div = div + dv2 - dv1;
+        double dtut = dtu_safe * 2.0 * volume[i + j * base_stride] / fmax(fmax(fabs(dv1), fabs(dv2)), g_small * volume[i + j * base_stride]);
+        dv1 = (yvel0[i + j * vels_wk_stride] + yvel0[(i + 1) + (j + 0) * vels_wk_stride]) * yarea[i + j * flux_y_stride];
+        dv2 = (yvel0[(i + 0) + (j + 1) * vels_wk_stride] + yvel0[(i + 1) + (j + 1) * vels_wk_stride]) *
+              yarea[(i + 0) + (j + 1) * flux_y_stride];
+        div = div + dv2 - dv1;
+        double dtvt = dtv_safe * 2.0 * volume[i + j * base_stride] / fmax(fmax(fabs(dv1), fabs(dv2)), g_small * volume[i + j * base_stride]);
+        div = div / (2.0 * volume[i + j * base_stride]);
+        double dtdivt;
+        if (div < -g_small) {
+          dtdivt = dtdiv_safe * (-1.0 / div);
+        } else {
+          dtdivt = g_big;
+        }
+        double mins = fmin(dtct, fmin(dtut, fmin(dtvt, fmin(dtdivt, g_big))));
+        dt_min_val0 = fmin(mins, dt_min_val0);
+      }
+    }
+    
+    if (globals.profiler_on) {
+      globals.profiler.timestep += timer() - globals.profiler.kernel_time;
+      globals.profiler.kernel_time = timer();
+    }
+
+  // map(from)
+  }
   
   if (globals.profiler_on) {
     globals.profiler.device_to_host += timer() - globals.profiler.kernel_time;
