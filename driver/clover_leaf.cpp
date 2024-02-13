@@ -49,8 +49,10 @@
 
 // Output file handler
 std::ostream g_out(nullptr);
+std::ostream csv_out(nullptr);
 
 std::ofstream of;
+std::ofstream csv_file;
 
 global_variables initialise(parallel_ &parallel, const std::vector<std::string> &args) {
   global_config config;
@@ -97,7 +99,7 @@ global_variables initialise(parallel_ &parallel, const std::vector<std::string> 
     std::cout << "CloverLeaf:\n"
               << " - Ver.:     " << g_version << "\n"
               << " - Deck:     " << model.args.inFile << "\n"
-              << " - Out:      " << model.args.outFile << "\n"
+              << " - Out:      " << model.args.outFile << ", " << model.args.csv_file << "\n"
               << " - Profiler: " << (model.args.profile ? (*model.args.profile ? "true" : "false") : "deck-specified") << "\n"
               << "MPI:\n"
               << " - Enabled:     " << (mpi_enabled ? "true" : "false") << "\n"
@@ -123,6 +125,17 @@ global_variables initialise(parallel_ &parallel, const std::vector<std::string> 
     g_out.rdbuf(of.rdbuf());
   } else {
     g_out.rdbuf(std::cout.rdbuf());
+  }
+
+  config.using_csv = !model.args.csv_file.empty();
+  if (parallel.boss) {
+    if (config.using_csv) {
+      csv_file.open(model.args.csv_file);
+      if (!csv_file.is_open()) report_error((char *)"initialise", (char *)"Error opening specified CSV output file.");
+      csv_out.rdbuf(csv_file.rdbuf());
+    } else {
+      csv_out.rdbuf(std::cout.rdbuf());
+    }
   }
 
   if (parallel.boss) {
@@ -187,6 +200,7 @@ global_variables initialise(parallel_ &parallel, const std::vector<std::string> 
 
   //	globals.step = 0;
   config.number_of_chunks = parallel.max_task;
+  config.warmup_steps = model.args.warmup_steps;
 
   auto globals = start(parallel, config, model.context);
   clover_barrier(globals);

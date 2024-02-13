@@ -25,6 +25,7 @@
 //  @details Invoked the users specified chunk generator.
 
 #include "generate_chunk.h"
+#include "../../driver/timer.h"
 
 void generate_chunk(const int tile, global_variables &globals) {
 
@@ -53,6 +54,8 @@ void generate_chunk(const int tile, global_variables &globals) {
   typename Kokkos::View<double *>::HostMirror hm_state_radius = Kokkos::create_mirror_view(state_radius);
   typename Kokkos::View<int *>::HostMirror hm_state_geometry = Kokkos::create_mirror_view(state_geometry);
 
+  double start_time = timer();
+
   // Copy the data to the new views
   for (int state = 0; state < globals.config.number_of_states; ++state) {
     hm_state_density(state) = globals.config.states[state].density;
@@ -77,6 +80,8 @@ void generate_chunk(const int tile, global_variables &globals) {
   Kokkos::deep_copy(state_ymax, hm_state_ymax);
   Kokkos::deep_copy(state_radius, hm_state_radius);
   Kokkos::deep_copy(state_geometry, hm_state_geometry);
+
+  globals.profiler.host_to_device += timer() - start_time;
 
   const int x_min = globals.chunk.tiles[tile].info.t_xmin;
   const int x_max = globals.chunk.tiles[tile].info.t_xmax;

@@ -19,6 +19,7 @@
 
 #include "calc_dt.h"
 #include "context.h"
+#include "timer.h"
 
 //  @brief Fortran timestep kernel
 //  @author Wayne Gaudin
@@ -28,7 +29,7 @@
 
 #define SPLIT
 
-void calc_dt_kernel(clover::context &ctx, int x_min, int x_max, int y_min, int y_max, double dtmin, double dtc_safe, double dtu_safe,
+void calc_dt_kernel(global_variables &globals, clover::context &ctx, int x_min, int x_max, int y_min, int y_max, double dtmin, double dtc_safe, double dtu_safe,
                     double dtv_safe, double dtdiv_safe, clover::Buffer2D<double> xarea, clover::Buffer2D<double> yarea,
                     clover::Buffer1D<double> cellx, clover::Buffer1D<double> celly, clover::Buffer1D<double> celldx,
                     clover::Buffer1D<double> celldy, clover::Buffer2D<double> volume, clover::Buffer2D<double> density0,
@@ -98,11 +99,23 @@ void calc_dt_kernel(clover::context &ctx, int x_min, int x_max, int y_min, int y
       })
       .wait_and_throw();
   ctx.queue.wait_and_throw();
+  
+  if (globals.profiler_on) {
+    globals.profiler.timestep += timer() - globals.profiler.kernel_time;
+    globals.profiler.kernel_time = timer();
+  }
+
 #ifdef CLOVER_MANAGED_ALLOC
   dt_min_val = minResults[0];
 #else
   dt_min_val = minResults.mirrored()[0];
 #endif
+  
+  if (globals.profiler_on) {
+    globals.profiler.device_to_host += timer() - globals.profiler.kernel_time;
+    globals.profiler.kernel_time = timer();
+  }
+
   clover::free(ctx.queue, minResults);
 
   dtl_control = static_cast<int>(10.01 * (jk_control - static_cast<int>(jk_control)));
@@ -141,7 +154,7 @@ void calc_dt(global_variables &globals, int tile, double &local_dt, std::string 
   int small = 0;
 
   tile_type &t = globals.chunk.tiles[tile];
-  calc_dt_kernel(globals.context, t.info.t_xmin, t.info.t_xmax, t.info.t_ymin, t.info.t_ymax, globals.config.dtmin, globals.config.dtc_safe,
+  calc_dt_kernel(globals, globals.context, t.info.t_xmin, t.info.t_xmax, t.info.t_ymin, t.info.t_ymax, globals.config.dtmin, globals.config.dtc_safe,
                  globals.config.dtu_safe, globals.config.dtv_safe, globals.config.dtdiv_safe, t.field.xarea, t.field.yarea, t.field.cellx,
                  t.field.celly, t.field.celldx, t.field.celldy, t.field.volume, t.field.density0, t.field.energy0, t.field.pressure,
                  t.field.viscosity, t.field.soundspeed, t.field.xvel0, t.field.yvel0, local_dt, l_control, xl_pos, yl_pos, jldt, kldt,

@@ -26,11 +26,15 @@
 
 #include "generate_chunk.h"
 #include "context.h"
+#include "timer.h"
 
 void generate_chunk(const int tile, global_variables &globals) {
+  double kernel_time;
 
   // Need to copy the host array of state input data into a device array
 #ifdef CLOVERLEAF_MANAGED_ALLOC
+  kernel_time = timer();
+
   clover::Buffer1D<double> state_density(globals.context, globals.config.number_of_states);
   clover::Buffer1D<double> state_energy(globals.context, globals.config.number_of_states);
   clover::Buffer1D<double> state_xvel(globals.context, globals.config.number_of_states);
@@ -55,6 +59,9 @@ void generate_chunk(const int tile, global_variables &globals) {
     state_radius[state] = globals.config.states[state].radius;
     state_geometry[state] = globals.config.states[state].geometry;
   }
+
+  globals.profiler.host_to_device = timer() - kernel_time;
+
 #else
   std::vector<double> state_density_vec(globals.config.number_of_states);
   std::vector<double> state_energy_vec(globals.config.number_of_states);
@@ -66,6 +73,8 @@ void generate_chunk(const int tile, global_variables &globals) {
   std::vector<double> state_ymax_vec(globals.config.number_of_states);
   std::vector<double> state_radius_vec(globals.config.number_of_states);
   std::vector<int> state_geometry_vec(globals.config.number_of_states);
+
+  kernel_time = timer();
 
   // Copy the data to the new views
   for (int state = 0; state < globals.config.number_of_states; ++state) {
@@ -81,6 +90,8 @@ void generate_chunk(const int tile, global_variables &globals) {
     state_geometry_vec[state] = globals.config.states[state].geometry;
   }
 
+  globals.profiler.host_to_device = timer() - kernel_time;
+
   clover::Buffer1D<double> state_density(globals.context, globals.config.number_of_states);
   clover::Buffer1D<double> state_energy(globals.context, globals.config.number_of_states);
   clover::Buffer1D<double> state_xvel(globals.context, globals.config.number_of_states);
@@ -91,6 +102,8 @@ void generate_chunk(const int tile, global_variables &globals) {
   clover::Buffer1D<double> state_ymax(globals.context, globals.config.number_of_states);
   clover::Buffer1D<double> state_radius(globals.context, globals.config.number_of_states);
   clover::Buffer1D<int> state_geometry(globals.context, globals.config.number_of_states);
+
+  kernel_time = timer();
 
   globals.context.queue.memcpy(state_density.data, state_density_vec.data(), sizeof(double) * globals.config.number_of_states);
   globals.context.queue.memcpy(state_energy.data, state_energy_vec.data(), sizeof(double) * globals.config.number_of_states);
@@ -103,8 +116,11 @@ void generate_chunk(const int tile, global_variables &globals) {
   globals.context.queue.memcpy(state_radius.data, state_radius_vec.data(), sizeof(double) * globals.config.number_of_states);
   globals.context.queue.memcpy(state_geometry.data, state_geometry_vec.data(), sizeof(int) * globals.config.number_of_states);
 
-  globals.config.queue.wait();
+  globals.context.queue.wait();
+  
+  globals.profiler.host_to_device = timer() - kernel_time;
 #endif
+
 
   // Kokkos::deep_copy (TO, FROM)
 

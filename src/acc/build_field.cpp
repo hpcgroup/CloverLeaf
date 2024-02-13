@@ -23,6 +23,7 @@
 // size.
 
 #include "build_field.h"
+#include "../../driver/timer.h"
 
 // Allocate device buffers for the data arrays
 void build_field(global_variables &globals) {
@@ -66,6 +67,8 @@ void build_field(global_variables &globals) {
     double *xarea = field.xarea.data;
     double *yarea = field.yarea.data;
 
+    double kernel_time = timer();
+
 #pragma acc enter data create(density0[ : field.density0.N()]) create(density1[ : field.density1.N()])                    \
     create(energy0[ : field.energy0.N()]) create(energy1[ : field.energy1.N()]) create(pressure[ : field.pressure.N()])     \
     create(viscosity[ : field.viscosity.N()]) create(soundspeed[ : field.soundspeed.N()]) create(yvel0[ : field.yvel0.N()]) \
@@ -79,6 +82,10 @@ void build_field(global_variables &globals) {
     create(celly[ : field.celly.N()]) create(celldy[ : field.celldy.N()]) create(vertexx[ : field.vertexx.N()])             \
     create(vertexdx[ : field.vertexdx.N()]) create(vertexy[ : field.vertexy.N()]) create(vertexdy[ : field.vertexdy.N()])   \
     create(volume[ : field.volume.N()]) create(xarea[ : field.xarea.N()]) create(yarea[ : field.yarea.N()])
+
+    if (globals.profiler_on) {
+      globals.profiler.host_to_device += timer() - kernel_time;
+    }
 
     const int xrange = (t.info.t_xmax + 2) - (t.info.t_xmin - 2) + 1;
     const int yrange = (t.info.t_ymax + 2) - (t.info.t_ymin - 2) + 1;

@@ -25,6 +25,7 @@
 //  @details Invoked the users specified chunk generator.
 
 #include "generate_chunk.h"
+#include "../../driver/timer.h"
 #include <cmath>
 
 void generate_chunk(const int tile, global_variables &globals) {
@@ -41,6 +42,8 @@ void generate_chunk(const int tile, global_variables &globals) {
   clover::Buffer1D<double> state_radius_buffer(globals.context, globals.config.number_of_states);
   clover::Buffer1D<int> state_geometry_buffer(globals.context, globals.config.number_of_states);
 
+  double start_time = timer();
+
   // Copy the data to the new views
   for (int state = 0; state < globals.config.number_of_states; ++state) {
     state_density_buffer[state] = globals.config.states[state].density;
@@ -54,6 +57,8 @@ void generate_chunk(const int tile, global_variables &globals) {
     state_radius_buffer[state] = globals.config.states[state].radius;
     state_geometry_buffer[state] = globals.config.states[state].geometry;
   }
+
+  globals.profiler.host_to_device += timer() - start_time;
 
   // Kokkos::deep_copy (TO, FROM)
 
@@ -114,12 +119,25 @@ void generate_chunk(const int tile, global_variables &globals) {
     const double *state_radius = state_radius_buffer.data;
     const int *state_geometry = state_geometry_buffer.data;
 
-#pragma acc parallel loop gang worker vector collapse(2) clover_use_target(globals.context.use_target)                                 \
+    // We always want to time this, even though it's during startup, when most
+    // of the timers are turned off
+    double start_time = timer();
+
+#pragma acc enter data clover_use_target(globals.context.use_target)                                 \
     copyin(state_density[ : state_density_buffer.N()]) copyin(state_energy[ : state_energy_buffer.N()])                                \
     copyin(state_xvel[ : state_xvel_buffer.N()]) copyin(state_yvel[ : state_yvel_buffer.N()])                                          \
     copyin(state_xmin[ : state_xmin_buffer.N()]) copyin(state_xmax[ : state_xmax_buffer.N()])                                          \
     copyin(state_ymin[ : state_ymin_buffer.N()]) copyin(state_ymax[ : state_ymax_buffer.N()])                                          \
     copyin(state_radius[ : state_radius_buffer.N()]) copyin(state_geometry[ : state_geometry_buffer.N()])                              \
+
+  globals.profiler.host_to_device += timer() - start_time;
+
+#pragma acc parallel loop gang worker vector collapse(2) clover_use_target(globals.context.use_target)                                 \
+    present(state_density[ : state_density_buffer.N()]) present(state_energy[ : state_energy_buffer.N()])                                \
+    present(state_xvel[ : state_xvel_buffer.N()]) present(state_yvel[ : state_yvel_buffer.N()])                                          \
+    present(state_xmin[ : state_xmin_buffer.N()]) present(state_xmax[ : state_xmax_buffer.N()])                                          \
+    present(state_ymin[ : state_ymin_buffer.N()]) present(state_ymax[ : state_ymax_buffer.N()])                                          \
+    present(state_radius[ : state_radius_buffer.N()]) present(state_geometry[ : state_geometry_buffer.N()])                              \
     present(energy0[ : field.energy0.N()], density0[ : field.density0.N()], xvel0[ : field.xvel0.N()], yvel0[: field.yvel0.N()],       \
             cellx[ : field.cellx.N()], celly[ : field.celly.N()], vertexx[ : field.vertexx.N()], vertexy[ : field.vertexy.N()])
     for (int j = 0; j < (yrange); j++) {

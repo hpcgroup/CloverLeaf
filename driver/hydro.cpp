@@ -30,6 +30,7 @@
 #include "visit.h"
 
 extern std::ostream g_out;
+extern std::ostream csv_out;
 
 int maxloc(const std::vector<double> &totals, const int len) {
   int loc = -1;
@@ -44,16 +45,26 @@ int maxloc(const std::vector<double> &totals, const int len) {
 }
 
 void hydro(global_variables &globals, parallel_ &parallel) {
-
-  double timerstart = timer();
-
   if (!globals.config.dumpDir.empty())
     clover::dump(globals, std::to_string(parallel.task) + "_" + std::to_string(globals.step) + "_05_hydro.txt");
 
+  double timerstart = timer();
+  bool profiler_off = globals.profiler_on;
+  if (0 != globals.config.warmup_steps) {
+    globals.profiler_on = false;
+  }
+
   while (true) {
+    if (globals.step == globals.config.warmup_steps) {
+      globals.profiler_on = profiler_off;
+      timerstart = timer();
+      
+      if (parallel.boss) {
+        std::cout << "  " << globals.config.warmup_steps << " warmup steps completed" << std::endl;
+      }
+    }
 
     double step_time = timer();
-
     globals.step += 1;
 
     timestep(globals, parallel);
@@ -105,6 +116,7 @@ void hydro(global_variables &globals, parallel_ &parallel) {
     if (globals.step == 1) first_step = timer() - step_time;
     if (globals.step == 2) second_step = timer() - step_time;
 
+    // JMK: simulation done
     if (globals.time + g_small > globals.config.end_time || globals.step >= globals.config.end_step) {
 
       globals.complete = true;
@@ -118,8 +130,8 @@ void hydro(global_variables &globals, parallel_ &parallel) {
               << "Clover is finishing" << std::endl
               << "Wall clock " << wall_clock << std::endl
               << "First step overhead " << first_step - second_step << std::endl;
-        std::cout << " Wall clock " << wall_clock << std::endl //
-                  << " First step overhead " << first_step - second_step << std::endl;
+        std::cout << "  Wall clock " << wall_clock << std::endl //
+                  << "  First step overhead " << first_step - second_step << std::endl;
       }
 
       std::vector<double> totals(parallel.max_task);
@@ -170,10 +182,16 @@ void hydro(global_variables &globals, parallel_ &parallel) {
         p.summary = totals[loc];
         clover_allgather(p.visit, totals);
         p.visit = totals[loc];
+        clover_allgather(p.host_to_device, totals);
+        p.host_to_device = totals[loc];
+        clover_allgather(p.device_to_host, totals);
+        p.device_to_host = totals[loc];
 
         if (parallel.boss) {
+          double remainder = wall_clock - kernel_total - p.host_to_device - p.device_to_host;
           auto writeProfile = [&](auto &stream) {
             stream << std::fixed << std::endl
+                   << " " << globals.config.warmup_steps << " warmup steps excluded from timing" << std::endl
                    << " Profiler Output        Time     Percentage" << std::endl
                    << " Timestep              :" << p.timestep << " " << 100.0 * (p.timestep / wall_clock) << std::endl
                    << " Ideal Gas             :" << p.ideal_gas << " " << 100.0 * (p.ideal_gas / wall_clock) << std::endl
@@ -190,13 +208,32 @@ void hydro(global_variables &globals, parallel_ &parallel) {
                    << " Tile Halo Exchange    :" << p.tile_halo_exchange << " " << 100.0 * (p.tile_halo_exchange / wall_clock) << std::endl
                    << " Self Halo Exchange    :" << p.self_halo_exchange << " " << 100.0 * (p.self_halo_exchange / wall_clock) << std::endl
                    << " MPI Halo Exchange     :" << p.mpi_halo_exchange << " " << 100.0 * (p.mpi_halo_exchange / wall_clock) << std::endl
-                   << " Total                 :" << kernel_total << " " << 100.0 * (kernel_total / wall_clock) << std::endl
-                   << " The Rest              :" << wall_clock - kernel_total << " " << 100.0 * (wall_clock - kernel_total) / wall_clock
+                   << " Total Kernel          :" << kernel_total << " " << 100.0 * (kernel_total / wall_clock) << std::endl
+                   << " Host to Device        :" << p.host_to_device << " " << 100.0 * (p.host_to_device / wall_clock) << std::endl
+                   << " Device to Host        :" << p.device_to_host << " " << 100.0 * (p.device_to_host / wall_clock) << std::endl
+                   << " The Rest              :" << remainder << " " << 100.0 * remainder / wall_clock
                    << std::endl
                    << std::endl;
           };
           writeProfile(g_out);
           writeProfile(std::cout);
+
+          if (globals.config.using_csv) {
+            std::cout << "Saving timings to CSV\n" << std::endl;
+            csv_out << "timestep,ideal_gas,viscosity,PdV,revert,acceleration,"
+                    << "fluxes,cell_advection,mom_advection,reset,summary,"
+                    << "visits,tile_halo_exchange,self_halo_exchange,mpi_halo_exchange,"
+                    << "total_kernel,host_to_device,device_to_host,other" << std::endl
+                    << 1000 * p.timestep << "," << 1000 * p.ideal_gas << ","
+                    << 1000 * p.PdV << "," << 1000 * p.revert << ","
+                    << 1000 * p.acceleration << "," << 1000 * p.flux << ","
+                    << 1000 * p.cell_advection << "," << 1000 * p.mom_advection << ","
+                    << 1000 * p.reset << "," << 1000 * p.summary << "," << 1000 * p.visit << ","
+                    << 1000 * p.tile_halo_exchange << "," << 1000 * p.self_halo_exchange << ","
+                    << 1000 * p.mpi_halo_exchange << "," << 1000 * kernel_total << ","
+                    << 1000 * p.host_to_device << "," << 1000 * p.device_to_host << ","
+                    << 1000 * remainder << std::endl;
+          }
         }
       }
 
@@ -209,12 +246,15 @@ void hydro(global_variables &globals, parallel_ &parallel) {
       wall_clock = timer() - timerstart;
       double step_clock = timer() - step_time;
       g_out << "Wall clock " << wall_clock << std::endl;
-      std::cout << " Wall clock " << wall_clock << std::endl;
+      std::cout << "  Wall clock " << wall_clock << std::endl;
       double cells = globals.config.grid.x_cells * globals.config.grid.y_cells;
       double rstep = globals.step;
+      if (globals.step > globals.config.warmup_steps) {
+        rstep -= globals.config.warmup_steps;
+      }
       double grind_time = wall_clock / (rstep * cells);
       double step_grind = step_clock / cells;
-      std::cout << " Average time per cell " << grind_time << std::endl;
+      std::cout << "  Average time per cell " << grind_time << std::endl;
       g_out << "Average time per cell " << grind_time << std::endl;
       std::cout << "  Step time per cell    " << step_grind << std::endl;
       g_out << "Step time per cell    " << step_grind << std::endl;
