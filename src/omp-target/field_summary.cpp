@@ -115,6 +115,7 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
       ke += cell_mass * 0.5 * vsqrd;
       press += cell_vol * pressure[j + (k)*base_stride];
     }
+  }
 
 #if SYNC_BUFFERS
   globals.deviceToHost();
