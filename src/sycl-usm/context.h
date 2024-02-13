@@ -56,6 +56,7 @@ template <typename T> struct Buffer1D {
   std::vector<T> mirrored() const {
     std::vector<T> buffer(size);
     queue->memcpy(buffer.data(), data, sizeof(T) * size);
+    queue->wait();
     return buffer;
   }
 };
