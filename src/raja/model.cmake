@@ -23,7 +23,7 @@ macro(setup)
         set(CMAKE_CUDA_STANDARD 17)
         set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
 
-        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -extended-lambda --expt-relaxed-constexpr --restrict --keep")
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -use-fast-math -extended-lambda --expt-relaxed-constexpr --restrict --keep")
 
         set_source_files_properties(${IMPL_SOURCES} PROPERTIES LANGUAGE CUDA)
     elseif (${RAJA_BACK_END} STREQUAL "HIP")
