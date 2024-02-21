@@ -109,7 +109,9 @@ struct grid_type {
 };
 
 struct profiler_type {
-
+  double kernel_time = 0.0;
+  double host_to_device = 0.0;
+  double device_to_host = 0.0;
   double timestep = 0.0;
   double acceleration = 0.0;
   double PdV = 0.0;
@@ -234,6 +236,8 @@ struct global_config {
   bool profiler_on;
   double end_time;
   int end_step;
+  int warmup_steps = 0;
+  bool using_csv;
 
   double dtinit;
   double dtmin;

@@ -82,54 +82,56 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
     double *pressure = field.pressure.data;
     double *xvel0 = field.xvel0.data;
     double *yvel0 = field.yvel0.data;
-  
+    
     if (globals.profiler_on) {
       globals.profiler.summary += timer() - kernel_time;
       kernel_time = timer();
     }
 
-#pragma omp target data map(tofrom : vol) map(tofrom : mass)   \
-    map(tofrom : ie) map(tofrom : ke) map(tofrom : press)
-    {
+#pragma acc enter data copyin(vol, mass, ie, ke, press)
+    
+    if (globals.profiler_on) {
+      globals.profiler.host_to_device += timer() - kernel_time;
+      kernel_time = timer();
+    }
 
-      if (globals.profiler_on) {
-        globals.profiler.host_to_device += timer() - kernel_time;
-        kernel_time = timer();
-      }
-
-#pragma omp target teams distribute parallel for simd clover_use_target(globals.context.use_target) reduction(+ : vol, mass, ie, ke, press)
-      for (int idx = 0; idx < ((ymax - ymin + 1) * (xmax - xmin + 1)); idx++) {
-        const int j = xmin + 1 + idx % (xmax - xmin + 1);
-        const int k = ymin + 1 + idx / (xmax - xmin + 1);
-        double vsqrd = 0.0;
-        for (int kv = k; kv <= k + 1; ++kv) {
-          for (int jv = j; jv <= j + 1; ++jv) {
-            vsqrd += 0.25 * (xvel0[(jv) + (kv)*vels_wk_stride] * xvel0[(jv) + (kv)*vels_wk_stride] +
-                             yvel0[(jv) + (kv)*vels_wk_stride] * yvel0[(jv) + (kv)*vels_wk_stride]);
-          }
+#pragma acc parallel loop gang worker vector clover_use_target(globals.context.use_target) \
+    present(vol, mass, ie, ke, press) reduction(+ : vol, mass, ie, ke, press)                 \
+    present(volume[ : field.volume.N()], density0[ : field.density0.N()],                  \
+            energy0[ : field.energy0.N()], pressure[ : field.pressure.N()],                \
+            xvel0[ : field.xvel0.N()], yvel0[ : field.yvel0.N()])
+    for (int idx = 0; idx < ((ymax - ymin + 1) * (xmax - xmin + 1)); idx++) {
+      const int j = xmin + 1 + idx % (xmax - xmin + 1);
+      const int k = ymin + 1 + idx / (xmax - xmin + 1);
+      double vsqrd = 0.0;
+      for (int kv = k; kv <= k + 1; ++kv) {
+        for (int jv = j; jv <= j + 1; ++jv) {
+          vsqrd += 0.25 * (xvel0[(jv) + (kv)*vels_wk_stride] * xvel0[(jv) + (kv)*vels_wk_stride] +
+                           yvel0[(jv) + (kv)*vels_wk_stride] * yvel0[(jv) + (kv)*vels_wk_stride]);
         }
-        double cell_vol = volume[j + (k)*base_stride];
-        double cell_mass = cell_vol * density0[j + (k)*base_stride];
-        vol += cell_vol;
-        mass += cell_mass;
-        ie += cell_mass * energy0[j + (k)*base_stride];
-        ke += cell_mass * 0.5 * vsqrd;
-        press += cell_vol * pressure[j + (k)*base_stride];
       }
-      
-      if (globals.profiler_on) {
-        globals.profiler.summary += timer() - kernel_time;
-        kernel_time = timer();
-      }
+      double cell_vol = volume[j + (k)*base_stride];
+      double cell_mass = cell_vol * density0[j + (k)*base_stride];
+      vol += cell_vol;
+      mass += cell_mass;
+      ie += cell_mass * energy0[j + (k)*base_stride];
+      ke += cell_mass * 0.5 * vsqrd;
+      press += cell_vol * pressure[j + (k)*base_stride];
+    }
+    
+    if (globals.profiler_on) {
+      globals.profiler.summary += timer() - kernel_time;
+      kernel_time = timer();
+    }
 
-    } // map(from)
-  
+#pragma acc exit data copyout(vol, mass, ie, ke, press)
+
     if (globals.profiler_on) {
       globals.profiler.device_to_host += timer() - kernel_time;
       kernel_time = timer();
     }
   }
-  
+
 #if SYNC_BUFFERS
   globals.deviceToHost();
 #endif

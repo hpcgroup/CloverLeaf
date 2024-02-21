@@ -29,7 +29,7 @@ macro(setup)
         set_source_files_properties(${IMPL_SOURCES} PROPERTIES LANGUAGE CUDA)
         register_definitions(RAJA_TARGET_GPU)
     elseif (${RAJA_BACK_END} STREQUAL "HIP")
-        # Set CMAKE_CXX_COMPILER to hipcc
+        # Set CMAKE_CXX_COMPILER to hipcc or HIP capable compiler
         find_package(hip REQUIRED)
         register_definitions(RAJA_TARGET_GPU)
     elseif (${RAJA_BACK_END} STREQUAL "SYCL")

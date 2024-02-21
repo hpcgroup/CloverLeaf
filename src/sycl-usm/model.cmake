@@ -9,7 +9,7 @@ register_flag_required(SYCL_COMPILER
            ONEAPI-ICPX  - icpx as a standalone compiler
            ONEAPI-Clang - oneAPI's Clang driver (enabled via `source /opt/intel/oneapi/setvars.sh  --include-intel-llvm`)
            DPCPP        - dpc++ as a standalone compiler (https://github.com/intel/llvm)
-           HIPSYCL      - hipSYCL compiler (https://github.com/illuhad/hipSYCL)
+           HIPSYCL|ADAPTIVECPP      - hipSYCL compiler (https://github.com/illuhad/hipSYCL)
            COMPUTECPP   - ComputeCpp compiler (https://developer.codeplay.com/products/computecpp/ce/home)")
 
 register_flag_optional(SYCL_COMPILER_DIR
@@ -30,6 +30,8 @@ register_flag_optional(USE_HOSTTASK
         "Whether to use SYCL2020 host_task for MPI related calls or fallback to queue.wait() not all SYCL compilers support this"
         "OFF")
 
+register_flag_optional(MANAGED_ALLOC "Use UVM (cudaMallocManaged) instead of the device-only allocation (cudaMalloc)"
+        "OFF")
 
 register_flag_optional(OpenCL_LIBRARY
         "[ComputeCpp only] Path to OpenCL library, usually called libOpenCL.so"
@@ -62,7 +64,8 @@ macro(setup)
         # register_definitions(_GLIBCXX_USE_CXX11_ABI=0)
         find_package(hipSYCL CONFIG REQUIRED)
         message(STATUS "ok")
-
+    elseif (${SYCL_COMPILER} STREQUAL "ADAPTIVECPP")
+        find_package(AdaptiveCpp CONFIG REQUIRED)
     elseif (${SYCL_COMPILER} STREQUAL "COMPUTECPP")
 
         list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
@@ -79,22 +82,20 @@ macro(setup)
         set(COMPUTECPP_USER_FLAGS -O3 -no-serial-memop)
 
     elseif (${SYCL_COMPILER} STREQUAL "DPCPP")
-        set(CMAKE_CXX_COMPILER ${SYCL_COMPILER_DIR}/bin/clang++)
-        include_directories(${SYCL_COMPILER_DIR}/include/sycl)
         register_append_cxx_flags(ANY -fsycl)
         register_append_link_flags(-fsycl)
     elseif (${SYCL_COMPILER} STREQUAL "ONEAPI-ICPX")
-        set(CMAKE_CXX_COMPILER icpx)
-        set(CMAKE_C_COMPILER icx)
         register_append_cxx_flags(ANY -fsycl)
         register_append_link_flags(-fsycl)
     elseif (${SYCL_COMPILER} STREQUAL "ONEAPI-Clang")
-        set(CMAKE_CXX_COMPILER clang++)
-        set(CMAKE_C_COMPILER clang)
         register_append_cxx_flags(ANY -fsycl)
         register_append_link_flags(-fsycl)
     else ()
         message(FATAL_ERROR "SYCL_COMPILER=${SYCL_COMPILER} is unsupported")
+    endif ()
+
+    if (MANAGED_ALLOC)
+        register_definitions(CLOVER_MANAGED_ALLOC)
     endif ()
 
     list(APPEND IMPL_SOURCES
@@ -112,7 +113,8 @@ endmacro()
 macro(setup_target NAME)
     if (
     (${SYCL_COMPILER} STREQUAL "COMPUTECPP") OR
-    (${SYCL_COMPILER} STREQUAL "HIPSYCL"))
+    (${SYCL_COMPILER} STREQUAL "HIPSYCL") OR
+    (${SYCL_COMPILER} STREQUAL "ADAPTIVECPP"))
         # so ComputeCpp and hipSYCL has this weird (and bad) CMake usage where they append their
         # own custom integration header flags AFTER the target has been specified
         # hence this macro here

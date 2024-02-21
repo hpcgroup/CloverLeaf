@@ -26,9 +26,13 @@
 
 #include "generate_chunk.h"
 #include "context.h"
+#include "../../driver/timer.h"
 #include <cmath>
 
 void generate_chunk(const int tile, global_variables &globals) {
+  // We always want to time this, even though it's during startup, when most
+  // of the timers are turned off
+  double start_time = timer();
 
   // Need to copy the host array of state input data into a device array
   std::vector<double> state_density_vec(globals.config.number_of_states);
@@ -67,6 +71,8 @@ void generate_chunk(const int tile, global_variables &globals) {
   clover::Buffer1D<double> state_ymax(globals.context, globals.config.number_of_states, state_ymax_vec.data());
   clover::Buffer1D<double> state_radius(globals.context, globals.config.number_of_states, state_radius_vec.data());
   clover::Buffer1D<int> state_geometry(globals.context, globals.config.number_of_states, state_geometry_vec.data());
+  
+  globals.profiler.host_to_device += timer() - start_time;
 
   const int x_min = globals.chunk.tiles[tile].info.t_xmin;
   const int x_max = globals.chunk.tiles[tile].info.t_xmax;

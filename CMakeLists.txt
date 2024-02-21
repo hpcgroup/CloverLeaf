@@ -155,7 +155,7 @@ endif ()
 
 # setup some defaults flags for everything
 set(DEFAULT_DEBUG_CXX_FLAGS -Wall -O2)
-set(DEFAULT_RELEASE_CXX_FLAGS -Wall -O3 -march=native)
+set(DEFAULT_RELEASE_CXX_FLAGS -Wall -O3)
 
 macro(hint_flag FLAG DESCRIPTION)
     if (NOT DEFINED ${FLAG})
@@ -188,11 +188,15 @@ option(USE_TBB "Enable oneTBB library for *supported* models. Enabling this on m
                 don't explicitly link against TBB is a no-op, see description of your selected
                 model on how this is used." OFF)
 
-if (USE_TBB)
+option(FETCH_TBB "Fetch (download) the oneTBB library for *supported* models. This uses CMake's
+                  FetchContent feature. Specify version by setting FETCH_TBB_VERSION" OFF)
+set(FETCH_TBB_VERSION "v2021.10.0" CACHE STRING "Specify version of oneTBB to use if FETCH_TBB is ON")
+
+if (FETCH_TBB)
     FetchContent_Declare(
             TBB
             GIT_REPOSITORY https://github.com/oneapi-src/oneTBB.git
-            GIT_TAG v2021.9.0
+            GIT_TAG "${FETCH_TBB_VERSION}"
     )
     # Don't fail builds on waring (TBB has -Wall while not being free of warnings from unused symbols...)
     set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
@@ -209,11 +213,15 @@ option(USE_ONEDPL "Enable oneDPL library for *supported* models. Enabling this o
                    don't explicitly link against DPL is a no-op, see description of your selected
                    model on how this is used." OFF)
 
-if (USE_ONEDPL)
+option(FETCH_ONEDPL "Fetch (download) the oneDPL library for *supported* models. This uses CMake's
+                  FetchContent feature. Specify version by setting FETCH_ONEDPL_VERSION" OFF)
+set(FETCH_ONEDPL_VERSION "oneDPL-2022.2.0-rc1" CACHE STRING "Specify version of oneTBB to use if FETCH_ONEDPL is ON")
+
+if (FETCH_ONEDPL)
     FetchContent_Declare(
             oneDPL
             GIT_REPOSITORY https://github.com/oneapi-src/oneDPL.git
-            GIT_TAG oneDPL-2022.2.0-rc1
+            GIT_TAG "${FETCH_ONEDPL_VERSION}"
     )
     string(TOLOWER ${USE_ONEDPL} ONEDPL_BACKEND)
     # XXX oneDPL looks for omp instead of openmp, which mismatches(!) with ONEDPL_PAR_BACKEND if using find_package
@@ -298,6 +306,7 @@ register_model(cuda USE_CUDA ${MODEL_SRC})
 register_model(hip USE_HIP ${MODEL_SRC})
 register_model(std-indices USE_STD ${MODEL_SRC})
 register_model(kokkos USE_KOKKOS ${MODEL_SRC})
+register_model(acc ACC ${MODEL_SRC})
 register_model(sycl-acc USE_SYCL_ACC ${MODEL_SRC})
 register_model(sycl-usm USE_SYCL_USM ${MODEL_SRC})
 

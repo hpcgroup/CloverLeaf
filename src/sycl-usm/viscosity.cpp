@@ -43,20 +43,20 @@ void viscosity_kernel(sycl::queue &queue, int x_min, int x_max, int y_min, int y
     double pgradx2 = pgradx * pgradx;
     double pgrady2 = pgrady * pgrady;
     double limiter = ((0.5 * (ugrad) / celldx[i]) * pgradx2 + (0.5 * (vgrad) / celldy[j]) * pgrady2 + strain2 * pgradx * pgrady) /
-                     std::fmax(pgradx2 + pgrady2, g_small);
+                     sycl::fmax(pgradx2 + pgrady2, g_small);
     if ((limiter > 0.0) || (div >= 0.0)) {
       viscosity(i, j) = 0.0;
     } else {
       double dirx = 1.0;
       if (pgradx < 0.0) dirx = -1.0;
-      pgradx = dirx * std::fmax(1.0e-16, std::fabs(pgradx));
+      pgradx = dirx * sycl::fmax(1.0e-16, sycl::fabs(pgradx));
       double diry = 1.0;
       if (pgradx < 0.0) diry = -1.0;
-      pgrady = diry * std::fmax(1.0e-16, std::fabs(pgrady));
-      double pgrad = std::sqrt(pgradx * pgradx + pgrady * pgrady);
-      double xgrad = std::fabs(celldx[i] * pgrad / pgradx);
-      double ygrad = std::fabs(celldy[j] * pgrad / pgrady);
-      double grad = std::fmin(xgrad, ygrad);
+      pgrady = diry * sycl::fmax(1.0e-16, sycl::fabs(pgrady));
+      double pgrad = sycl::sqrt(pgradx * pgradx + pgrady * pgrady);
+      double xgrad = sycl::fabs(celldx[i] * pgrad / pgradx);
+      double ygrad = sycl::fabs(celldy[j] * pgrad / pgrady);
+      double grad = sycl::fmin(xgrad, ygrad);
       double grad2 = grad * grad;
       viscosity(i, j) = 2.0 * density0(i, j) * grad2 * limiter * limiter;
     }

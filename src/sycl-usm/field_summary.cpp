@@ -77,7 +77,7 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
     int xmin = t.info.t_xmin;
     auto &field = t.field;
 
-#if defined(__HIPSYCL__) || defined(__OPENSYCL__)
+#if defined(__HIPSYCL__) || defined(__OPENSYCL__) || defined(__ADAPTIVECPP__)
     auto reduction = sycl::reduction(summaryResults.data, {}, sycl::plus<summary>());
 #else
     auto reduction =
@@ -112,7 +112,12 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
         .wait_and_throw();
   }
   globals.context.queue.wait_and_throw();
+
+#ifdef CLOVER_MANAGED_ALLOC
   auto [vol, mass, ie, ke, press] = summaryResults[0];
+#else
+  auto [vol, mass, ie, ke, press] = summaryResults.mirrored()[0];
+#endif
 
   clover::free(globals.context.queue, summaryResults);
 
@@ -121,7 +126,7 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
   clover_sum(ie);
   clover_sum(ke);
   clover_sum(press);
-
+  
   if (globals.profiler_on) globals.profiler.summary += timer() - kernel_time;
 
   clover_report_step(globals, parallel, vol, mass, ie, ke, mass);
