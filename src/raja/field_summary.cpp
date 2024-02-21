@@ -80,11 +80,11 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
     int xmin = t.info.t_xmin;
     field_type &field = t.field;
 
-    RAJA::ReduceSum<reduce_policy, double> RAJAvol(0);
-    RAJA::ReduceSum<reduce_policy, double> RAJAmass(0);
-    RAJA::ReduceSum<reduce_policy, double> RAJAie(0);
-    RAJA::ReduceSum<reduce_policy, double> RAJAke(0);
-    RAJA::ReduceSum<reduce_policy, double> RAJApress(0);
+    RAJA::ReduceSum<reduce_policy, double> RAJAvol(vol);
+    RAJA::ReduceSum<reduce_policy, double> RAJAmass(mass);
+    RAJA::ReduceSum<reduce_policy, double> RAJAie(ie);
+    RAJA::ReduceSum<reduce_policy, double> RAJAke(ke);
+    RAJA::ReduceSum<reduce_policy, double> RAJApress(press);
 
     int range = (ymax - ymin + 1) * (xmax - xmin + 1);
 //    clover::par_reduce<BLOCK, BLOCK>([=] __device__(int gid) {

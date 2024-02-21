@@ -44,7 +44,6 @@ void PdV_kernel(bool predict, int x_min, int x_max, int y_min, int y_max, double
 
   // DO k=y_min,y_max
   //   DO j=x_min,x_max
-  clover::Range2d policy(x_min + 1, y_min + 1, x_max + 2, y_max + 2);
   RAJA::TypedRangeSegment<int> row_Range(y_min + 1,  y_max + 2);
   RAJA::TypedRangeSegment<int> col_Range(x_min + 1, x_max + 2);
 

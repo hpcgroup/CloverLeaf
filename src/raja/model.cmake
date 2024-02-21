@@ -16,6 +16,7 @@ macro(setup)
 
     find_package(RAJA REQUIRED)
     find_package(umpire REQUIRED)
+    find_package(Threads REQUIRED)
 
     register_link_library(RAJA umpire)
     if (${RAJA_BACK_END} STREQUAL "CUDA")
@@ -23,7 +24,7 @@ macro(setup)
         set(CMAKE_CUDA_STANDARD 17)
         set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
 
-        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -extended-lambda --expt-relaxed-constexpr --restrict --keep")
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -std=c++17 -extended-lambda --expt-relaxed-constexpr --restrict --keep -use_fast_math")
 
         set_source_files_properties(${IMPL_SOURCES} PROPERTIES LANGUAGE CUDA)
         register_definitions(RAJA_TARGET_GPU)

@@ -182,6 +182,17 @@ void update_tile_halo_l_kernel(
                           }
                         });
   }
+  // VOL_FLUX_Y
+  if (fields[field_vol_flux_y] == 1) {
+    // DO k=y_min-depth,y_max+1+depth
+
+    RAJA::forall<raja_default_policy>(RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + 1 + depth + 2), [=] RAJA_HOST_DEVICE(int k) {
+                          for (int j = 0; j < depth; ++j) {
+                            vol_flux_y(x_min - j, k) = left_vol_flux_y(left_xmax + 1 - j, k);
+                          }
+                        });
+  }
+
 
   // MASS_FLUX_Y
   if (fields[field_mass_flux_y] == 1) {

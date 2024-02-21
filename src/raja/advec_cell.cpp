@@ -145,7 +145,7 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
     // DO k=y_min-2,y_max+2
     //   DO j=x_min-2,x_max+2
 //    clover::Range2d policy(x_min - 2 + 1, y_min - 2 + 1, x_max + 2 + 2, y_max + 2 + 2);
-    const RAJA::TypedRangeSegment<int> row_Range1(y_min - 2 + 1,  y_max + 2);
+    const RAJA::TypedRangeSegment<int> row_Range1(y_min - 2 + 1,  y_max + 2 + 2);
     const RAJA::TypedRangeSegment<int> col_Range1(x_min - 2 + 1,  x_max + 2 + 2);
  
     if (sweep_number == 1) {
@@ -168,10 +168,10 @@ void advec_cell_kernel(int x_min, int x_max, int y_min, int y_max, int dir, int 
 
     // DO k=y_min,y_max+2
     //   DO j=x_min,x_max
+    // clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 2, y_max + 2 + 2}, [=] DEVICE_KERNEL(const int x, const int y) {
     const RAJA::TypedRangeSegment<int> row_Range2(y_min + 1,  y_max + 2 + 2);
     const RAJA::TypedRangeSegment<int> col_Range2(x_min + 1,  x_max  + 2);
 
-//    clover::par_ranged2(Range2d{x_min + 1, y_min + 1, x_max + 2, y_max + 2 + 2}, [=] DEVICE_KERNEL(const int x, const int y) {
     RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range2, row_Range2),
         [=] RAJA_HOST_DEVICE (const int x, const int y) {
       int upwind, donor, downwind, dif;
