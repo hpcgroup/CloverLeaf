@@ -52,7 +52,7 @@ void accelerate_kernel(int x_min, int x_max, int y_min, int y_max, double dt, cl
   RAJA::TypedRangeSegment<int> col_Range(x_min + 1, x_max + 1 + 2);
 
     RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range, row_Range),
-      [=] RAJA_DEVICE (const int i, const int j) {
+      [=] RAJA_HOST_DEVICE (const int i, const int j) {
     double stepbymass_s = halfdt / ((density0(i - 1, j - 1) * volume(i - 1, j - 1) + density0(i - 1, j + 0) * volume(i - 1, j + 0) +
                                      density0(i, j) * volume(i, j) + density0(i + 0, j - 1) * volume(i + 0, j - 1)) *
                                     0.25);

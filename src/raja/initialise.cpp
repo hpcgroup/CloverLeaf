@@ -33,6 +33,7 @@ std::string clover::CLResourceManager::umpireResources[clover::CLResourceManager
 std::string clover::CLResourceManager::CloverLeafPools[clover::CLResourceManager::UmpireResourceType::RSEND] = {"CloverLeaf-HOST", "CloverLeaf-DEVICE", "CloverLeaf-UM"};
 int clover::CLResourceManager::allocator_ids[clover::CLResourceManager::UmpireResourceType::RSEND] = { -1, -1, -1};
 
+#if defined(RAJA_TARGET_GPU)
 model create_context(bool silent, const std::vector<std::string> &args) {
   // initialise Umpire Allocators
   for (int Resource = 0; Resource < clover::CLResourceManager::UmpireResourceType::RSEND; Resource++){
@@ -42,7 +43,7 @@ model create_context(bool silent, const std::vector<std::string> &args) {
 
     // Pick umpire resource
     auto alloc_name = clover::CLResourceManager::CloverLeafPools[Resource];
-    std::cout << "Allo Name is" << alloc_name << "\n";
+    std::cout << "Alloc Name is" << alloc_name << "\n";
     // .. and map it to cloverleaf resource name
     auto& rm = umpire::ResourceManager::getInstance();
     auto alloc_resource = rm.makeAllocator<umpire::strategy::QuickPool, true>(
@@ -72,7 +73,26 @@ model create_context(bool silent, const std::vector<std::string> &args) {
   clover::checkError(rajaSetDevice(device.id));
   return model{clover::context{}, "CUDA", true, parsed};
 }
+#else
+model create_context(bool silent, const std::vector<std::string> &args) {
+  auto alloc_name = clover::CLResourceManager::CloverLeafPools[0];
+  std::cout << "Alloc Name is" << alloc_name << "\n";
+  
+  auto& rm = umpire::ResourceManager::getInstance();
+  auto alloc_resource = rm.makeAllocator<umpire::strategy::QuickPool, true>(
+      alloc_name, rm.getAllocator(clover::CLResourceManager::umpireResources[0]));
 
+  std::cout << "Setting up Resource: " <<
+    clover::CLResourceManager::umpireResources[0].c_str() << " " << 0 << "\n";
+    clover::CLResourceManager::allocator_ids[0] = alloc_resource.getId();
+  
+  auto [_, parsed] = list_and_parse<std::string>(
+      silent, {"Host CPU"}, [](const auto &d) { return d; }, args);
+  return {clover::context{}, "OpenMP (CPU)", false, parsed};
+}
+#endif
+
+#if defined(RAJA_TARGET_GPU)
 void report_context(const clover::context &) {
   int device = -1;
   clover::checkError(rajaGetDevice(&device));
@@ -98,3 +118,6 @@ void report_context(const clover::context &) {
 #endif
             << std::endl;
 }
+#else
+void report_context(const clover::context &) {}
+#endif
