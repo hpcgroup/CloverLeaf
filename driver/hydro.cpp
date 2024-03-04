@@ -206,13 +206,6 @@ void hydro(global_variables &globals, parallel_ &parallel) {
         clover_allgather(p.device_to_host, totals);
         p.device_to_host = totals[loc];
         
-        double kernel_total_post = p.timestep + p.ideal_gas + p.viscosity + p.PdV + p.revert + p.acceleration + p.flux + p.cell_advection +
-                              p.mom_advection + p.reset + p.summary + p.visit + p.tile_halo_exchange + p.self_halo_exchange +
-                              p.mpi_halo_exchange;
-        std::cout << "Tasks: " << parallel.max_task << " max(sum(kernels)): "
-          << kernel_total << " sum(max(kernels)): " << kernel_total_post
-          << std::endl;
-
         if (parallel.boss) {
           double remainder = wall_clock - kernel_total - p.host_to_device - p.device_to_host;
           auto writeProfile = [&](auto &stream) {
