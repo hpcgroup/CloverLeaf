@@ -282,3 +282,4 @@ struct global_variables {
 
   global_variables(const global_config &config, clover::context queue, chunk_type chunk);
 };
+

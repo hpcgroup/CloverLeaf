@@ -28,6 +28,7 @@
 #include "../../driver/timer.h"
 
 void generate_chunk(const int tile, global_variables &globals) {
+  globals.is_asyc = true;
 
   // Need to copy the host array of state input data into a device array
   // XXX This probably doesn't need ViewAllocateWithoutInitializing because of how small `globals.number_of_states` is.

@@ -48,7 +48,10 @@ void timestep(global_variables &globals, parallel_ &parallel) {
     ideal_gas(globals, tile, false);
   }
 
-  if (globals.profiler_on) globals.profiler.ideal_gas += timer() - kernel_time;
+  if (globals.profiler_on) {
+    if (globals.is_asyc) sync();
+    globals.profiler.ideal_gas += timer() - kernel_time;
+  }
 
   for (int i = 0; i < NUM_FIELDS; ++i)
     fields[i] = 0;
@@ -60,8 +63,13 @@ void timestep(global_variables &globals, parallel_ &parallel) {
   update_halo(globals, fields, 1);
 
   if (globals.profiler_on) kernel_time = timer();
+
   viscosity(globals);
-  if (globals.profiler_on) globals.profiler.viscosity += timer() - kernel_time;
+
+  if (globals.profiler_on) {
+    if (globals.is_asyc) sync();
+    globals.profiler.viscosity += timer() - kernel_time;
+  }
 
   for (int i = 0; i < NUM_FIELDS; ++i)
     fields[i] = 0;
@@ -91,7 +99,9 @@ void timestep(global_variables &globals, parallel_ &parallel) {
 
   //	globals.queue.wait_and_throw();
   clover_min(globals.dt);
+
   if (globals.profiler_on) {
+    if (globals.is_asyc) sync();
     globals.profiler.timestep += timer() - globals.profiler.kernel_time;
   }
 

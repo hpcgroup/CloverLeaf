@@ -51,7 +51,10 @@ void advection(global_variables &globals) {
     advec_cell_driver(globals, tile, sweep_number, direction);
   }
 
-  if (globals.profiler_on) globals.profiler.cell_advection += timer() - kernel_time;
+  if (globals.profiler_on) {
+    if (globals.is_asyc) sync();
+    globals.profiler.cell_advection += timer() - kernel_time;
+  }
 
   for (int &field : fields)
     field = 0;
@@ -70,7 +73,10 @@ void advection(global_variables &globals) {
     advec_mom_driver(globals, tile, yvel, direction, sweep_number);
   }
 
-  if (globals.profiler_on) globals.profiler.mom_advection += timer() - kernel_time;
+  if (globals.profiler_on) {
+    if (globals.is_asyc) sync();
+    globals.profiler.mom_advection += timer() - kernel_time;
+  }
 
   sweep_number = 2;
   if (globals.advect_x) direction = g_ydir;
@@ -82,7 +88,10 @@ void advection(global_variables &globals) {
     advec_cell_driver(globals, tile, sweep_number, direction);
   }
 
-  if (globals.profiler_on) globals.profiler.cell_advection += timer() - kernel_time;
+  if (globals.profiler_on) {
+    if (globals.is_asyc) sync();
+    globals.profiler.cell_advection += timer() - kernel_time;
+  }
 
   for (int &field : fields)
     field = 0;
@@ -101,5 +110,8 @@ void advection(global_variables &globals) {
     advec_mom_driver(globals, tile, yvel, direction, sweep_number);
   }
 
-  if (globals.profiler_on) globals.profiler.mom_advection += timer() - kernel_time;
+  if (globals.profiler_on) {
+    if (globals.is_asyc) sync();
+    globals.profiler.mom_advection += timer() - kernel_time;
+  }
 }
