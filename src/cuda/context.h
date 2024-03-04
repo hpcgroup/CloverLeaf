@@ -228,8 +228,6 @@ template <typename T> struct reduce<T, 0> {
   __device__ inline static void run(T *array, T *out, T (*)(T, T)) { out[blockIdx.x] = array[0]; }
 };
 
-void sync() {}
-
 } // namespace clover
 
 using clover::Range1d;

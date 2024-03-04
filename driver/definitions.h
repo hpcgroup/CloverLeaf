@@ -50,8 +50,6 @@ struct context;
 // template <typename T> Buffer1D<T> alloc(size_t x);
 // template <typename T> Buffer2D<T> alloc(size_t x, size_t y);
 
-void sync();
-
 } // namespace clover
 
 enum geometry_type { g_rect = 1, g_circ = 2, g_point = 3 };
@@ -279,7 +277,6 @@ struct global_variables {
   bool report_test_fail = false;
   int jdt{}, kdt{};
 
-  bool is_asyc = false;
   bool profiler_on = false; // Internal code profiler to make comparisons across systems easier
   profiler_type profiler{};
 

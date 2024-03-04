@@ -144,8 +144,6 @@ template <class functorT> static inline void par_ranged2(sycl::queue &q, const R
   event.wait_and_throw();
 }
 
-void sync() {}
-
 } // namespace clover
 
 using clover::Range1d;
