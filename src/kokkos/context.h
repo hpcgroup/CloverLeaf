@@ -76,6 +76,10 @@ struct chunk_context {
 // template <typename T> using Buffer1D = Kokkos::View<T *>;
 // template <typename T> using Buffer2D = Kokkos::View<T **>;
 // #define BUFFER_NO_FORWARD_DECL
+
+void sync() {
+  Kokkos::fence();
+}
 } // namespace clover
 
 using clover::Range1d;

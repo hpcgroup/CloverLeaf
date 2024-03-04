@@ -177,6 +177,8 @@ RAJA_HOST_DEVICE T &operator()(size_t i, size_t j) const { return data[i + j * s
 
 template <typename T> using StagingBuffer1D = T*;
 
+void sync() {}
+
 } // namespace clover
 
 using clover::Range1d;

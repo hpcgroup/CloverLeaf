@@ -185,6 +185,8 @@ template <typename F> static void par_ranged2(const Range2d &r, const F &functor
   // }
 }
 
+void sync() {}
+
 } // namespace clover
 
 using clover::Range1d;

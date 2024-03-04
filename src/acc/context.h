@@ -144,6 +144,8 @@ template <typename T> using StagingBuffer1D = T *;
 
 struct chunk_context {};
 
+void sync() {}
+
 } // namespace clover
 
 using clover::Range1d;

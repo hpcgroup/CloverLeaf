@@ -234,4 +234,7 @@ template <typename T> static void execute(sycl::queue &queue, T cgf) {
     throw e;
   }
 }
+
+void sync() {}
+
 } // namespace clover
