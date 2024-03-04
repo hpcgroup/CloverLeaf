@@ -277,6 +277,7 @@ struct global_variables {
   bool report_test_fail = false;
   int jdt{}, kdt{};
 
+  bool is_async = false;
   bool profiler_on = false; // Internal code profiler to make comparisons across systems easier
   profiler_type profiler{};
 

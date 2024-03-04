@@ -22,6 +22,7 @@
 #include "advec_mom.h"
 #include "timer.h"
 #include "update_halo.h"
+#include "sync.h"
 
 //  @brief Top level advection driver
 //  @author Wayne Gaudin
@@ -52,7 +53,7 @@ void advection(global_variables &globals) {
   }
 
   if (globals.profiler_on) {
-    if (globals.is_asyc) sync();
+    if (globals.is_async) sync();
     globals.profiler.cell_advection += timer() - kernel_time;
   }
 
@@ -74,7 +75,7 @@ void advection(global_variables &globals) {
   }
 
   if (globals.profiler_on) {
-    if (globals.is_asyc) sync();
+    if (globals.is_async) sync();
     globals.profiler.mom_advection += timer() - kernel_time;
   }
 
@@ -89,7 +90,7 @@ void advection(global_variables &globals) {
   }
 
   if (globals.profiler_on) {
-    if (globals.is_asyc) sync();
+    if (globals.is_async) sync();
     globals.profiler.cell_advection += timer() - kernel_time;
   }
 
@@ -111,7 +112,7 @@ void advection(global_variables &globals) {
   }
 
   if (globals.profiler_on) {
-    if (globals.is_asyc) sync();
+    if (globals.is_async) sync();
     globals.profiler.mom_advection += timer() - kernel_time;
   }
 }
