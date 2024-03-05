@@ -100,7 +100,7 @@ void PdV(global_variables &globals, bool predict) {
 
   clover_check_error(globals.error_condition);
   if (globals.profiler_on) {
-    if (globals.should_sync_profile) sync();
+    if (globals.should_sync_profile) clover_sync();
     globals.profiler.PdV += timer() - kernel_time;
   }
 
@@ -115,7 +115,7 @@ void PdV(global_variables &globals, bool predict) {
     }
 
     if (globals.profiler_on) {
-      if (globals.should_sync_profile) sync();
+      if (globals.should_sync_profile) clover_sync();
       globals.profiler.ideal_gas += timer() - kernel_time;
     }
 
@@ -130,7 +130,7 @@ void PdV(global_variables &globals, bool predict) {
     if (globals.profiler_on) kernel_time = timer();
     revert(globals);
     if (globals.profiler_on) {
-      if (globals.should_sync_profile) sync();
+      if (globals.should_sync_profile) clover_sync();
       globals.profiler.revert += timer() - kernel_time;
     }
   }

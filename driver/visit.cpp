@@ -61,7 +61,7 @@ void visit(global_variables &globals, parallel_ &parallel) {
     ideal_gas(globals, tile, false);
   }
   if (globals.profiler_on) {
-    if (globals.should_sync_profile) sync();
+    if (globals.should_sync_profile) clover_sync();
     globals.profiler.ideal_gas += timer() - kernel_time;
   }
 

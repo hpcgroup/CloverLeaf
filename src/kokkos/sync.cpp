@@ -20,7 +20,7 @@
 #include "sync.h"
 #include <Kokkos_Core.hpp>
 
-void sync() {
+void clover_sync() {
   Kokkos::fence();
 }
 
