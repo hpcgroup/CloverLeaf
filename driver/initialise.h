@@ -35,6 +35,7 @@ struct run_args {
   std::string outFile;
   staging_buffer staging_buffer;
   std::optional<bool> profile;
+  std::optional<bool> should_sync_profile;
   int warmup_steps = 0;
   std::string csv_file;
 };
@@ -63,7 +64,7 @@ std::pair<T, run_args> list_and_parse(bool silent, const std::vector<T> &devices
         << "      --device           <INDEX|NAME>    Use device at INDEX from output of --list or substring match iff INDEX is not an id\n"
         << "      --file,--in              <FILE>    Custom clover.in file FILE (defaults to clover.in if unspecified)\n"
         << "      --out                    <FILE>    Custom clover.out file FILE (defaults to clover.out if unspecified)\n"
-        << "      --dump                    <DIR>    Dumps all field data in ASCII to ./DIR for debugging, DIR is created if missing\n"
+        << "      --dump                   <DIR>    Dumps all field data in ASCII to ./DIR for debugging, DIR is created if missing\n"
         << "      --profile                          Enables kernel profiling, this takes precedence over the profiler_on in clover.in\n"
         << "      --staging-buffer <true|false|auto> If true, use a host staging buffer for device-host MPI halo exchange.\n"
            "                                         If false, use device pointers directly for MPI halo exchange.\n"
@@ -72,6 +73,7 @@ std::pair<T, run_args> list_and_parse(bool silent, const std::vector<T> &devices
         << "                                         Setting this to false on an MPI that is not device-aware may cause a segfault.\n"
         << "      --warmup,-w               <NUM>    Treat the first NUM iterations as warmup iterations and exclude them from all timing\n"
         << "      --csv,-c                 <FILE>    Path to a CSV file FILE in which to save timing information\n"
+        << "      --sync,-s                          Enables manual syncs in profiling code\n"
         << std::endl;
   };
 
@@ -154,6 +156,8 @@ std::pair<T, run_args> list_and_parse(bool silent, const std::vector<T> &devices
       readParam(i, "--warmup,-w specified but no number given", [&config](const auto &param) { config.warmup_steps = std::stoi(param); });
     } else if (arg == "--csv" || arg == "-c") {
       readParam(i, "--csv,-c specified but no path was given", [&config](const auto &param) { config.csv_file = param; });
+    } else if (arg == "--sync" || arg == "-s") {
+      config.should_sync_profile = true;
     } else {
       std::cerr << "Unknown argument: " << arg << std::endl;
       printHelp();

@@ -138,6 +138,10 @@ global_variables initialise(parallel_ &parallel, const std::vector<std::string> 
     }
   }
 
+  if (model.args.should_sync_profile) {
+    config.should_sync_profile = *model.args.should_sync_profile;
+  }
+
   if (parallel.boss) {
     g_out << "Clover Version " << g_version << std::endl     //
           << "Task Count " << parallel.max_task << std::endl //

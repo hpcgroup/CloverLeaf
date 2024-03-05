@@ -19,6 +19,7 @@
 
 #include "reset_field.h"
 #include "timer.h"
+#include "sync.h"
 
 //  @brief Fortran reset field kernel.
 //  @author Wayne Gaudin
@@ -62,5 +63,8 @@ void reset_field(global_variables &globals) {
                        t.field.yvel1.view);
   }
 
-  if (globals.profiler_on) globals.profiler.reset += timer() - kernel_time;
+  if (globals.profiler_on) {
+    if (globals.should_sync_profile) sync();
+    globals.profiler.reset += timer() - kernel_time;
+  }
 }

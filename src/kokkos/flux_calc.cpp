@@ -19,6 +19,7 @@
 
 #include "flux_calc.h"
 #include "timer.h"
+#include "sync.h"
 
 //  @brief Fortran flux kernel.
 //  @author Wayne Gaudin
@@ -58,5 +59,8 @@ void flux_calc(global_variables &globals) {
                      globals.chunk.tiles[tile].field.vol_flux_y.view);
   }
 
-  if (globals.profiler_on) globals.profiler.flux += timer() - kernel_time;
+  if (globals.profiler_on) {
+    if (globals.should_sync_profile) sync();
+    globals.profiler.flux += timer() - kernel_time;
+  }
 }

@@ -109,11 +109,22 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
       RAJAke += cell_mass * 0.5 * vsqrd;
       RAJApress += cell_vol * field.pressure(j, k);
     });
+
+    if (globals.profiler_on) {
+      globals.profiler.summary += timer() - kernel_time;
+      kernel_time = timer();
+    }
+
     vol = RAJAvol.get();
     mass = RAJAmass.get();
     ie = RAJAie.get();
     ke = RAJAke.get();
     press = RAJApress.get();
+
+    if (globals.profiler_on) {
+      globals.profiler.device_to_host += timer() - kernel_time;
+      kernel_time = timer();
+    }
   }
   vol_buffer.release();
   mass_buffer.release();

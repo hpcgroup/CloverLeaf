@@ -21,6 +21,7 @@
 #include "ideal_gas.h"
 #include "report.h"
 #include "timer.h"
+#include "sync.h"
 
 #include <iomanip>
 
@@ -138,6 +139,7 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
   }
 
   if (globals.profiler_on) {
+    if (globals.should_sync_profile) sync();
     globals.profiler.ideal_gas += timer() - kernel_time;
     kernel_time = timer();
   }
@@ -176,7 +178,10 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
   clover_sum(ke);
   clover_sum(press);
 
-  if (globals.profiler_on) globals.profiler.summary += timer() - kernel_time;
+  if (globals.profiler_on) {
+    if (globals.should_sync_profile) sync();
+    globals.profiler.summary += timer() - kernel_time;
+  }
 
   clover_report_step(globals, parallel, vol, mass, ie, ke, mass);
 }

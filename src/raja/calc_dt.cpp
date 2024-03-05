@@ -19,6 +19,7 @@
 
 #include "calc_dt.h"
 #include "context.h"
+#include "timer.h"
 #include <cmath>
 #include <numeric>
 #include <string>
@@ -91,7 +92,17 @@ void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, 
     raja_min.min(local_min);
   });
 
+  if (globals.profiler_on) {
+    globals.profiler.timestep += timer() - globals.profiler.kernel_time;
+    globals.profiler.kernel_time = timer();
+  }
+
   dt_min_val = raja_min.get();
+
+  if (globals.profiler_on) {
+    globals.profiler.device_to_host += timer() - globals.profiler.kernel_time;
+    globals.profiler.kernel_time = timer();
+  }
 
   dtl_control = static_cast<int>(10.01 * (jk_control - static_cast<int>(jk_control)));
   jk_control = jk_control - (jk_control - (int)(jk_control));
