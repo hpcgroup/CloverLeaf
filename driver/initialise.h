@@ -35,6 +35,7 @@ struct run_args {
   std::string outFile;
   staging_buffer staging_buffer;
   std::optional<bool> profile;
+  std::optional<bool> should_sync_profile;
   int warmup_steps = 0;
   std::string csv_file;
 };

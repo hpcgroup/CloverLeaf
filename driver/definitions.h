@@ -234,6 +234,7 @@ struct global_config {
   int tiles_per_chunk;
   int test_problem;
   bool profiler_on;
+  bool should_sync_profile;
   double end_time;
   int end_step;
   int warmup_steps = 0;
