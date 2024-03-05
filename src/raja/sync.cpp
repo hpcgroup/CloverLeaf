@@ -19,5 +19,5 @@
 
 #include "sync.h"
 
-void sync() {}
+void clover_sync() {}
 

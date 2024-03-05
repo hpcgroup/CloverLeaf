@@ -72,7 +72,7 @@ void accelerate(global_variables &globals) {
   }
 
   if (globals.profiler_on) {
-    if (globals.should_sync_profile) sync();
+    if (globals.should_sync_profile) clover_sync();
     globals.profiler.acceleration += timer() - kernel_time;
   }
 }

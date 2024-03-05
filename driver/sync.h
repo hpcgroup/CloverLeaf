@@ -21,5 +21,5 @@
 
 #include "definitions.h"
 
-void sync();
+void clover_sync();
 

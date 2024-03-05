@@ -50,7 +50,7 @@ void timestep(global_variables &globals, parallel_ &parallel) {
   }
 
   if (globals.profiler_on) {
-    if (globals.should_sync_profile) sync();
+    if (globals.should_sync_profile) clover_sync();
     globals.profiler.ideal_gas += timer() - kernel_time;
   }
 
@@ -68,7 +68,7 @@ void timestep(global_variables &globals, parallel_ &parallel) {
   viscosity(globals);
 
   if (globals.profiler_on) {
-    if (globals.should_sync_profile) sync();
+    if (globals.should_sync_profile) clover_sync();
     globals.profiler.viscosity += timer() - kernel_time;
   }
 
@@ -102,7 +102,7 @@ void timestep(global_variables &globals, parallel_ &parallel) {
   clover_min(globals.dt);
 
   if (globals.profiler_on) {
-    if (globals.should_sync_profile) sync();
+    if (globals.should_sync_profile) clover_sync();
     globals.profiler.timestep += timer() - globals.profiler.kernel_time;
   }
 
