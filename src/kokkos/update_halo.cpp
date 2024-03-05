@@ -638,7 +638,7 @@ void update_halo(global_variables &globals, int fields[NUM_FIELDS], const int de
   if (globals.profiler_on) kernel_time = timer();
   update_tile_halo(globals, fields, depth);
   if (globals.profiler_on) {
-    if (globals.is_async) sync();
+    if (globals.should_sync_profile) sync();
     globals.profiler.tile_halo_exchange += timer() - kernel_time;
     kernel_time = timer();
   }
@@ -676,7 +676,7 @@ void update_halo(global_variables &globals, int fields[NUM_FIELDS], const int de
   }
 
   if (globals.profiler_on) {
-    if (globals.is_async) sync();
+    if (globals.should_sync_profile) sync();
     globals.profiler.self_halo_exchange += timer() - kernel_time;
   }
 }

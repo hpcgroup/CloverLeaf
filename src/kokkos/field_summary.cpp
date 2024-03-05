@@ -138,7 +138,7 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
   }
 
   if (globals.profiler_on) {
-    if (globals.is_async) sync();
+    if (globals.should_sync_profile) sync();
     globals.profiler.ideal_gas += timer() - kernel_time;
     kernel_time = timer();
   }
@@ -178,7 +178,7 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
   clover_sum(press);
 
   if (globals.profiler_on) {
-    if (globals.is_async) sync();
+    if (globals.should_sync_profile) sync();
     globals.profiler.summary += timer() - kernel_time;
   }
 

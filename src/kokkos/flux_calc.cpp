@@ -60,7 +60,7 @@ void flux_calc(global_variables &globals) {
   }
 
   if (globals.profiler_on) {
-    if (globals.is_async) sync();
+    if (globals.should_sync_profile) sync();
     globals.profiler.flux += timer() - kernel_time;
   }
 }

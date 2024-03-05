@@ -53,7 +53,7 @@ void advection(global_variables &globals) {
   }
 
   if (globals.profiler_on) {
-    if (globals.is_async) sync();
+    if (globals.should_sync_profile) sync();
     globals.profiler.cell_advection += timer() - kernel_time;
   }
 
@@ -75,7 +75,7 @@ void advection(global_variables &globals) {
   }
 
   if (globals.profiler_on) {
-    if (globals.is_async) sync();
+    if (globals.should_sync_profile) sync();
     globals.profiler.mom_advection += timer() - kernel_time;
   }
 
@@ -90,7 +90,7 @@ void advection(global_variables &globals) {
   }
 
   if (globals.profiler_on) {
-    if (globals.is_async) sync();
+    if (globals.should_sync_profile) sync();
     globals.profiler.cell_advection += timer() - kernel_time;
   }
 
@@ -112,7 +112,7 @@ void advection(global_variables &globals) {
   }
 
   if (globals.profiler_on) {
-    if (globals.is_async) sync();
+    if (globals.should_sync_profile) sync();
     globals.profiler.mom_advection += timer() - kernel_time;
   }
 }
