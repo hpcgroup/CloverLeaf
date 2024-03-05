@@ -21,6 +21,7 @@
 #include "ideal_gas.h"
 #include "report.h"
 #include "timer.h"
+#include "sync.h"
 
 #include <iomanip>
 

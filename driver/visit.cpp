@@ -20,6 +20,7 @@
 #include "visit.h"
 #include "ideal_gas.h"
 #include "timer.h"
+#include "sync.h"
 #include "update_halo.h"
 #include "viscosity.h"
 
