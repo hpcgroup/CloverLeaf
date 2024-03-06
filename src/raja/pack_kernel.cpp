@@ -55,7 +55,7 @@ void clover_pack_message_left(global_variables &, int x_min, int x_max, int y_mi
   //clover::par_ranged1(Range1d{y_min - depth + 1, y_max + y_inc + depth + 2}, [=] DEVICE_KERNEL(int k) {
   RAJA::forall<raja_default_policy>(
     RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + y_inc + depth + 2),
-        [=] RAJA_DEVICE (int k) {
+        [=] RAJA_HOST_DEVICE (int k) {
     for (int j = 0; j < depth; ++j) {
       size_t index = buffer_offset + j + k * depth;
       left_snd[index] = field(x_min + x_inc - 1 + j + 2, k);
@@ -90,7 +90,7 @@ void clover_unpack_message_left(global_variables &, int x_min, int x_max, int y_
 //  clover::par_ranged1(Range1d{y_min - depth + 1, y_max + y_inc + depth + 2}, [=] DEVICE_KERNEL(int k) {
   RAJA::forall<raja_default_policy>(
     RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + y_inc + depth + 2),
-        [=] RAJA_DEVICE (int k) {
+        [=] RAJA_HOST_DEVICE (int k) {
     for (int j = 0; j < depth; ++j) {
       size_t index = buffer_offset + j + k * depth;
       field(x_min - j, k) = left_rcv[index];
@@ -125,7 +125,7 @@ void clover_pack_message_right(global_variables &, int x_min, int x_max, int y_m
 //  clover::par_ranged1(Range1d{y_min - depth + 1, y_max + y_inc + depth + 2}, [=] DEVICE_KERNEL(int k) {
   RAJA::forall<raja_default_policy>(
     RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + y_inc + depth + 2),
-        [=] RAJA_DEVICE (int k) {
+        [=] RAJA_HOST_DEVICE (int k) {
     for (int j = 0; j < depth; ++j) {
       size_t index = buffer_offset + j + k * depth;
       right_snd[index] = field(x_max + 1 - j, k);
@@ -164,7 +164,7 @@ void clover_unpack_message_right(global_variables &, int x_min, int x_max, int y
 //  clover::par_ranged1(Range1d{y_min - depth + 1, y_max + y_inc + depth + 2}, [=] DEVICE_KERNEL(int k) {
   RAJA::forall<raja_default_policy>(
     RAJA::TypedRangeSegment<int>(y_min - depth + 1, y_max + y_inc + depth + 2),
-        [=] RAJA_DEVICE (int k) {
+        [=] RAJA_HOST_DEVICE (int k) {
     for (int j = 0; j < depth; ++j) {
       size_t index = buffer_offset + j + k * depth;
       field(x_max + x_inc + j + 2, k) = right_rcv[index];
@@ -199,7 +199,7 @@ void clover_pack_message_top(global_variables &, int x_min, int x_max, int y_min
 
     RAJA::forall<raja_default_policy>(
         RAJA::TypedRangeSegment<int>(x_min - depth + 1,
-          x_max + x_inc + depth + 2), [=] RAJA_DEVICE (int j) {
+          x_max + x_inc + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
       size_t index = buffer_offset + k + j * depth;
       top_snd[index] = field(j, y_max + 1 - k);
     });
@@ -237,7 +237,7 @@ void clover_unpack_message_top(global_variables &, int x_min, int x_max, int y_m
 
 //    clover::par_ranged1(Range1d{x_min - depth + 1, x_max + x_inc + depth + 2}, [=] DEVICE_KERNEL(int j) {
     RAJA::forall<raja_default_policy>(
-        RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + x_inc + depth + 2), [=] RAJA_DEVICE (int j) {
+        RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + x_inc + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
       size_t index = buffer_offset + k + j * depth;
       field(j, y_max + y_inc + k + 2) = top_rcv[index];
     });
@@ -274,7 +274,7 @@ void clover_pack_message_bottom(global_variables &, int x_min, int x_max, int y_
     // DO j=x_min-depth,x_max+x_inc+depth
 
     RAJA::forall<raja_default_policy>(
-        RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + x_inc + depth + 2), [=] RAJA_DEVICE (int j) {
+        RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + x_inc + depth + 2), [=] RAJA_HOST_DEVICE (int j) {
       size_t index = buffer_offset + k + j * depth;
       bottom_snd[index] = field(j, y_min + y_inc - 1 + k + 2);
     });
@@ -309,7 +309,7 @@ void clover_unpack_message_bottom(global_variables &, int x_min, int x_max, int 
 //    clover::par_ranged1(Range1d{x_min - depth + 1, x_max + x_inc + depth + 2}, [=] DEVICE_KERNEL(int j) {
       RAJA::forall<raja_default_policy>(
         RAJA::TypedRangeSegment<int>(x_min - depth + 1, x_max + x_inc + depth + 2),
-        [=] RAJA_DEVICE (int j) {
+        [=] RAJA_HOST_DEVICE (int j) {
           size_t index = buffer_offset + k + j * depth;
           field(j, y_min - k) = bottom_rcv[index];
       });

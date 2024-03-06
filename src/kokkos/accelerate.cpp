@@ -19,6 +19,7 @@
 
 #include "accelerate.h"
 #include "timer.h"
+#include "sync.h"
 
 // @brief Fortran acceleration kernel
 // @author Wayne Gaudin
@@ -70,5 +71,8 @@ void accelerate(global_variables &globals) {
                       globals.chunk.tiles[tile].field.yvel1.view);
   }
 
-  if (globals.profiler_on) globals.profiler.acceleration += timer() - kernel_time;
+  if (globals.profiler_on) {
+    if (globals.should_sync_profile) clover_sync();
+    globals.profiler.acceleration += timer() - kernel_time;
+  }
 }

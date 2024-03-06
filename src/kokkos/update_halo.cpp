@@ -21,6 +21,7 @@
 #include "comms.h"
 #include "comms_kernel.h"
 #include "timer.h"
+#include "sync.h"
 #include "update_tile_halo.h"
 
 //   @brief Fortran kernel to update the external halo cells in a chunk.
@@ -637,6 +638,7 @@ void update_halo(global_variables &globals, int fields[NUM_FIELDS], const int de
   if (globals.profiler_on) kernel_time = timer();
   update_tile_halo(globals, fields, depth);
   if (globals.profiler_on) {
+    if (globals.should_sync_profile) clover_sync();
     globals.profiler.tile_halo_exchange += timer() - kernel_time;
     kernel_time = timer();
   }
@@ -673,5 +675,8 @@ void update_halo(global_variables &globals, int fields[NUM_FIELDS], const int de
     }
   }
 
-  if (globals.profiler_on) globals.profiler.self_halo_exchange += timer() - kernel_time;
+  if (globals.profiler_on) {
+    if (globals.should_sync_profile) clover_sync();
+    globals.profiler.self_halo_exchange += timer() - kernel_time;
+  }
 }

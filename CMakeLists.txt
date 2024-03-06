@@ -294,6 +294,7 @@ set(MODEL_SRC
         PdV.cpp
         reset_field.cpp
         revert.cpp
+        sync.cpp
         update_halo.cpp
         update_tile_halo_kernel.cpp
         viscosity.cpp)

@@ -39,7 +39,7 @@ void viscosity_kernel(int x_min, int x_max, int y_min, int y_max, clover::Buffer
   const RAJA::TypedRangeSegment<int> row_Range1(y_min + 1,  y_max + 2);
   const RAJA::TypedRangeSegment<int> col_Range1(x_min + 1,  x_max + 2);
   RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range1, row_Range1),
-      [=] RAJA_DEVICE (const int i, const int j) {
+      [=] RAJA_HOST_DEVICE (const int i, const int j) {
 
     double ugrad = (xvel0(i + 1, j + 0) + xvel0(i + 1, j + 1)) - (xvel0(i, j) + xvel0(i + 0, j + 1));
 

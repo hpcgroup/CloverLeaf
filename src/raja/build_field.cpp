@@ -103,7 +103,7 @@ void build_field(global_variables &globals) {
     const RAJA::TypedRangeSegment<int> row_Range(0,  yrange + 1);
     const RAJA::TypedRangeSegment<int> col_Range(0,  xrange + 1);
     RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range, row_Range),
-        [=] RAJA_DEVICE (const int i, const int j) {
+        [=] RAJA_HOST_DEVICE (const int i, const int j) {
       field.work_array1(i, j) = 0.0;
       field.work_array2(i, j) = 0.0;
       field.work_array3(i, j) = 0.0;
@@ -123,7 +123,7 @@ void build_field(global_variables &globals) {
     const RAJA::TypedRangeSegment<int> row_Range1(0,  yrange);
     const RAJA::TypedRangeSegment<int> col_Range1(0,  xrange);
     RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range1, row_Range1),
-        [=] RAJA_DEVICE (const int i, const int j) {
+        [=] RAJA_HOST_DEVICE (const int i, const int j) {
       field.density0(i, j) = 0.0;
       field.density1(i, j) = 0.0;
       field.energy0(i, j) = 0.0;
@@ -137,7 +137,7 @@ void build_field(global_variables &globals) {
     // Nested loop over (t_ymin-2:t_ymax+2) and (t_xmin-2:t_xmax+3) inclusive
     // clover::par_ranged2(Range2d{0u, 0u, xrange, yrange}, [=] DEVICE_KERNEL(const int i, const int j) {
     RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range1, row_Range1),
-        [=] RAJA_DEVICE (const int i, const int j) {
+        [=] RAJA_HOST_DEVICE (const int i, const int j) {
       field.vol_flux_x(i, j) = 0.0;
       field.mass_flux_x(i, j) = 0.0;
       field.xarea(i, j) = 0.0;
@@ -148,7 +148,7 @@ void build_field(global_variables &globals) {
     const RAJA::TypedRangeSegment<int> row_Range2(0,  yrange + 1);
     const RAJA::TypedRangeSegment<int> col_Range2(0,  xrange);
     RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range2, row_Range2),
-        [=] RAJA_DEVICE (const int i, const int j) {
+        [=] RAJA_HOST_DEVICE (const int i, const int j) {
       field.vol_flux_y(i, j) = 0.0;
       field.mass_flux_y(i, j) = 0.0;
       field.yarea(i, j) = 0.0;
@@ -156,28 +156,28 @@ void build_field(global_variables &globals) {
 
     // (t_xmin-2:t_xmax+2) inclusive
     RAJA::forall<raja_default_policy>(
-        RAJA::TypedRangeSegment<int>(0u, xrange), [=] RAJA_DEVICE (int id ) {
+        RAJA::TypedRangeSegment<int>(0u, xrange), [=] RAJA_HOST_DEVICE (int id ) {
       field.cellx[id] = 0.0;
       field.celldx[id] = 0.0;
     });
 
     // (t_ymin-2:t_ymax+2) inclusive
     RAJA::forall<raja_default_policy>(
-        RAJA::TypedRangeSegment<int>(0u, yrange), [=] RAJA_DEVICE (int id ) {
+        RAJA::TypedRangeSegment<int>(0u, yrange), [=] RAJA_HOST_DEVICE (int id ) {
       field.celly[id] = 0.0;
       field.celldy[id] = 0.0;
     });
 
     // (t_xmin-2:t_xmax+3) inclusive
     RAJA::forall<raja_default_policy>(
-        RAJA::TypedRangeSegment<int>(0u, xrange+1), [=] RAJA_DEVICE (int id ) {
+        RAJA::TypedRangeSegment<int>(0u, xrange+1), [=] RAJA_HOST_DEVICE (int id ) {
       field.vertexx[id] = 0.0;
       field.vertexdx[id] = 0.0;
     });
 
     // (t_ymin-2:t_ymax+3) inclusive
     RAJA::forall<raja_default_policy>(
-        RAJA::TypedRangeSegment<int>(0u, yrange+1), [=] RAJA_DEVICE (int id ) {
+        RAJA::TypedRangeSegment<int>(0u, yrange+1), [=] RAJA_HOST_DEVICE (int id ) {
       field.vertexy[id] = 0.0;
       field.vertexdy[id] = 0.0;
     });

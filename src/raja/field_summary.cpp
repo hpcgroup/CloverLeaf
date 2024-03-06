@@ -80,16 +80,16 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
     int xmin = t.info.t_xmin;
     field_type &field = t.field;
 
-    RAJA::ReduceSum<reduce_policy, double> RAJAvol(0);
-    RAJA::ReduceSum<reduce_policy, double> RAJAmass(0);
-    RAJA::ReduceSum<reduce_policy, double> RAJAie(0);
-    RAJA::ReduceSum<reduce_policy, double> RAJAke(0);
-    RAJA::ReduceSum<reduce_policy, double> RAJApress(0);
+    RAJA::ReduceSum<reduce_policy, double> RAJAvol(vol);
+    RAJA::ReduceSum<reduce_policy, double> RAJAmass(mass);
+    RAJA::ReduceSum<reduce_policy, double> RAJAie(ie);
+    RAJA::ReduceSum<reduce_policy, double> RAJAke(ke);
+    RAJA::ReduceSum<reduce_policy, double> RAJApress(press);
 
     int range = (ymax - ymin + 1) * (xmax - xmin + 1);
 //    clover::par_reduce<BLOCK, BLOCK>([=] __device__(int gid) {
     RAJA::forall<raja_default_policy>(RAJA::TypedRangeSegment<int>(0, range),
-        [=] RAJA_DEVICE (int gid) {
+        [=] RAJA_HOST_DEVICE (int gid) {
       int v = gid;
 
       const size_t j = xmin + 1 + v % (xmax - xmin + 1);
@@ -109,11 +109,22 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
       RAJAke += cell_mass * 0.5 * vsqrd;
       RAJApress += cell_vol * field.pressure(j, k);
     });
+
+    if (globals.profiler_on) {
+      globals.profiler.summary += timer() - kernel_time;
+      kernel_time = timer();
+    }
+
     vol = RAJAvol.get();
     mass = RAJAmass.get();
     ie = RAJAie.get();
     ke = RAJAke.get();
     press = RAJApress.get();
+
+    if (globals.profiler_on) {
+      globals.profiler.device_to_host += timer() - kernel_time;
+      kernel_time = timer();
+    }
   }
   vol_buffer.release();
   mass_buffer.release();

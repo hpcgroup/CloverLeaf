@@ -79,10 +79,12 @@ struct context {};
 
 template <typename T> static inline T *alloc(size_t count) {
   static auto& rm = umpire::ResourceManager::getInstance();
-#ifdef CLOVER_MANAGED_ALLOC
+#if defined(CLOVER_MANAGED_ALLOC)
   auto alloc = rm.getAllocator(CLResourceManager::allocator_ids[CLResourceManager::UM]);
-#else
+#elif defined(RAJA_TARGET_GPU)
   auto alloc = rm.getAllocator(CLResourceManager::allocator_ids[CLResourceManager::DEVICE]);
+#else
+  auto alloc = rm.getAllocator(CLResourceManager::allocator_ids[CLResourceManager::HOST]);
 #endif
 
   T* p = static_cast<T*>(alloc.allocate(count * sizeof(T)));
@@ -115,7 +117,7 @@ template <typename T> struct Buffer1D {
 
   void release() { dealloc(data); }
 
-  __host__ __device__ T &operator[](size_t i) const { return data[i]; }
+  RAJA_HOST_DEVICE T &operator[](size_t i) const { return data[i]; }
   T *actual() { return data; }
 
   template <size_t D> [[nodiscard]] size_t extent() const {
@@ -146,7 +148,7 @@ template <typename T> struct Buffer2D {
 
   void release() { dealloc(data); }
 
-  __host__ __device__ T &operator()(size_t i, size_t j) const { return data[i + j * sizeX]; }
+RAJA_HOST_DEVICE T &operator()(size_t i, size_t j) const { return data[i + j * sizeX]; }
   T *actual() { return data; }
 
   template <size_t D> [[nodiscard]] size_t extent() const {
@@ -187,6 +189,7 @@ void raja_copy(T* dest, T* src, size_t bytes){
 }
 
 
+#if defined(RAJA_TARGET_GPU)
 #if defined(RAJA_ENABLE_CUDA)
 using raja_default_policy= RAJA::cuda_exec<RAJA_BLOCK_SIZE>;
 using reduce_policy = RAJA::cuda_reduce;
@@ -195,10 +198,10 @@ using rajaError_t = cudaError_t;
 
 using KERNEL_EXEC_POL = RAJA::KernelPolicy<
     RAJA::statement::CudaKernel<
-        RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::cuda_block_y_direct,
-          RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::cuda_block_x_direct,
-            RAJA::statement::For<1, RAJA::cuda_thread_y_direct,
-              RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
+        RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::cuda_block_y_loop,
+          RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::cuda_block_x_loop,
+            RAJA::statement::For<1, RAJA::cuda_thread_x_direct,
+              RAJA::statement::For<0, RAJA::cuda_thread_y_direct,
                 RAJA::statement::Lambda<0>
               >
             >
@@ -206,6 +209,7 @@ using KERNEL_EXEC_POL = RAJA::KernelPolicy<
         >
       >
     >;
+
 
 namespace clover{
 static inline void checkError(const cudaError_t err = cudaGetLastError()) {
@@ -244,8 +248,8 @@ using rajaError_t = hipError_t;
 
 using KERNEL_EXEC_POL = RAJA::KernelPolicy<
     RAJA::statement::HipKernel<
-        RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::hip_block_y_direct,
-          RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::hip_block_x_direct,
+        RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::hip_block_y_loop,
+          RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::hip_block_x_loop,
             RAJA::statement::For<1, RAJA::hip_thread_y_direct,
               RAJA::statement::For<0, RAJA::hip_thread_x_direct,
                 RAJA::statement::Lambda<0>
@@ -285,5 +289,74 @@ static inline rajaError_t rajaGetDeviceCount(int *count){
   return hipGetDeviceCount(count);
 }
 
+#elif defined(RAJA_ENABLE_SYCL)
+/*
+  * The RAJA SYCL backend has some errors that are to be addressed at
+  * https://github.com/LLNL/RAJA/pull/1574. Right now the support for the RAJA
+  * SYCL backend is a WIP.
+*/
+using raja_default_policy = RAJA::sycl_exec<RAJA_BLOCK_SIZE>;
+using reduce_policy = RAJA::sycl_reduce;
+
+using KERNEL_EXEC_POL = RAJA::KernelPolicy<
+    RAJA::statement::SyclKernel<
+        RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::sycl_group_1_loop,
+          RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::sycl_group_0_loop,
+            RAJA::statement::For<1, RAJA::sycl_local_1_direct,
+              RAJA::statement::For<0, RAJA::sycl_local_0_direct,
+                RAJA::statement::Lambda<0>
+              >
+            >
+          >
+        >
+      >
+    >;
+
+#endif
 #endif
 
+#if defined(RAJA_TARGET_CPU)
+using rajaError_t = bool;
+namespace clover{
+static inline void checkError(const bool err) {
+  /* No-Op */
+}
+}
+
+static inline rajaError_t rajaDeviceSynchronize() {
+  return true;
+}
+
+#if defined(RAJA_ENABLE_OPENMP)
+using raja_default_policy = RAJA::omp_parallel_for_exec;
+using reduce_policy = RAJA::omp_reduce;
+
+using KERNEL_EXEC_POL = RAJA::KernelPolicy<
+    RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::omp_parallel_for_exec,
+      RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::seq_exec,
+        RAJA::statement::For<1, RAJA::omp_parallel_for_exec,
+          RAJA::statement::For<0, RAJA::seq_exec,
+            RAJA::statement::Lambda<0>
+          >
+        >
+      >
+    >
+  >;
+
+#else
+using raja_default_policy = RAJA::seq_exec;
+using reduce_policy = RAJA::seq_reduce;
+
+using KERNEL_EXEC_POL = RAJA::KernelPolicy<
+    RAJA::statement::Tile<1, RAJA::tile_fixed<8>, RAJA::seq_exec,
+      RAJA::statement::Tile<0, RAJA::tile_fixed<32>, RAJA::seq_exec,
+        RAJA::statement::For<1, RAJA::seq_exec,
+          RAJA::statement::For<0, RAJA::seq_exec,
+            RAJA::statement::Lambda<0>
+          >
+        >
+      >
+    >
+  >;
+#endif
+#endif

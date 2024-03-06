@@ -50,13 +50,13 @@ void initialise_chunk(const int tile, global_variables &globals) {
   field_type &field = globals.chunk.tiles[tile].field;
 
   RAJA::forall<raja_default_policy>(RAJA::TypedRangeSegment<int>(0u, xrange),
-      [=] RAJA_DEVICE (int j) {
+      [=] RAJA_HOST_DEVICE (int j) {
     field.vertexx[j] = xmin + dx * (static_cast<int>(j) - 1 - x_min);
     field.vertexdx[j] = dx;
   });
 
   RAJA::forall<raja_default_policy>(RAJA::TypedRangeSegment<int>(0u, yrange),
-      [=] RAJA_DEVICE (int k) {
+      [=] RAJA_HOST_DEVICE (int k) {
     field.vertexy[k] = ymin + dy * (static_cast<int>(k) - 1 - y_min);
     field.vertexdy[k] = dy;
   });
@@ -65,13 +65,13 @@ void initialise_chunk(const int tile, global_variables &globals) {
   const size_t yrange1 = (y_max + 2) - (y_min - 2) + 1;
 
   RAJA::forall<raja_default_policy>(RAJA::TypedRangeSegment<int>(0u, xrange1),
-      [=] RAJA_DEVICE (int j) {
+      [=] RAJA_HOST_DEVICE (int j) {
     field.cellx[j] = 0.5 * (field.vertexx[j] + field.vertexx[j + 1]);
     field.celldx[j] = dx;
   });
 
   RAJA::forall<raja_default_policy>(RAJA::TypedRangeSegment<int>(0u, yrange1),
-      [=] RAJA_DEVICE (int k) {
+      [=] RAJA_HOST_DEVICE (int k) {
     field.celly[k] = 0.5 * (field.vertexy[k] + field.vertexy[k + 1]);
     field.celldy[k] = dy;
   });
@@ -81,7 +81,7 @@ void initialise_chunk(const int tile, global_variables &globals) {
 
 ////  clover::par_ranged2(Range2d{0u, 0u, xrange1, yrange1}, [=] DEVICE_KERNEL(const int i, const int j) {
   RAJA::kernel<KERNEL_EXEC_POL>(RAJA::make_tuple(col_Range, row_Range),
-    [=] RAJA_DEVICE (int i, int j) {
+    [=] RAJA_HOST_DEVICE (int i, int j) {
     field.volume(i, j) = dx * dy;
     field.xarea(i, j) = field.celldy[j];
     field.yarea(i, j) = field.celldx[i];
