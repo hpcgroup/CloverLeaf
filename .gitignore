@@ -22,7 +22,7 @@ tags
 # CMake
 cmake-build-*/
 Build/
-build/
+build*
 build_*/
 .idea/
 
