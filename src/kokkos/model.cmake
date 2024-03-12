@@ -11,7 +11,7 @@ macro(setup)
 
         set(CMAKE_CUDA_STANDARD 17)
 
-        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -use_fast_math")
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -use_fast_math -extended-lambda -Wext-lambda-captures-this -expt-relaxed-constexpr")
 
         set_source_files_properties(${IMPL_SOURCES} PROPERTIES LANGUAGE CUDA)
     elseif (${KOKKOS_BACK_END} STREQUAL "HIP")
