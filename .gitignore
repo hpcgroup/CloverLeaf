@@ -23,7 +23,7 @@ tags
 spack*
 cmake-build-*/
 Build/
-build/
+build*
 build_*/
 .idea/
 

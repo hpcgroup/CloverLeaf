@@ -23,6 +23,7 @@
 #include "report.h"
 #include "revert.h"
 #include "timer.h"
+#include "sync.h"
 #include "update_halo.h"
 
 //  @brief Fortran PdV kernel.
@@ -98,7 +99,10 @@ void PdV(global_variables &globals, bool predict) {
   }
 
   clover_check_error(globals.error_condition);
-  if (globals.profiler_on) globals.profiler.PdV += timer() - kernel_time;
+  if (globals.profiler_on) {
+    if (globals.should_sync_profile) clover_sync();
+    globals.profiler.PdV += timer() - kernel_time;
+  }
 
   if (globals.error_condition == 1) {
     report_error((char *)"PdV", (char *)"error in PdV");
@@ -110,7 +114,10 @@ void PdV(global_variables &globals, bool predict) {
       ideal_gas(globals, tile, true);
     }
 
-    if (globals.profiler_on) globals.profiler.ideal_gas += timer() - kernel_time;
+    if (globals.profiler_on) {
+      if (globals.should_sync_profile) clover_sync();
+      globals.profiler.ideal_gas += timer() - kernel_time;
+    }
 
     int fields[NUM_FIELDS];
     for (int i = 0; i < NUM_FIELDS; ++i)
@@ -122,6 +129,9 @@ void PdV(global_variables &globals, bool predict) {
   if (predict) {
     if (globals.profiler_on) kernel_time = timer();
     revert(globals);
-    if (globals.profiler_on) globals.profiler.revert += timer() - kernel_time;
+    if (globals.profiler_on) {
+      if (globals.should_sync_profile) clover_sync();
+      globals.profiler.revert += timer() - kernel_time;
+    }
   }
 }

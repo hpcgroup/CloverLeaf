@@ -13,7 +13,11 @@ register_flag_optional(SYNC_ALL_KERNELS
 macro(setup)
 
     set(CMAKE_CXX_STANDARD 17)
-    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    set(CMAKE_HIP_STANDARD 17)
+
+    enable_language(HIP)
+    set_source_files_properties(${IMPL_SOURCES} PROPERTIES LANGUAGE HIP)
+    set_source_files_properties(src/main.cpp PROPERTIES LANGUAGE HIP)
 
     if (MANAGED_ALLOC)
         register_definitions(CLOVER_MANAGED_ALLOC)

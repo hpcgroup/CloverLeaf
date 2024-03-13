@@ -234,6 +234,7 @@ struct global_config {
   int tiles_per_chunk;
   int test_problem;
   bool profiler_on;
+  bool should_sync_profile;
   double end_time;
   int end_step;
   int warmup_steps = 0;
@@ -277,8 +278,10 @@ struct global_variables {
   bool report_test_fail = false;
   int jdt{}, kdt{};
 
+  bool should_sync_profile = false;
   bool profiler_on = false; // Internal code profiler to make comparisons across systems easier
   profiler_type profiler{};
 
   global_variables(const global_config &config, clover::context queue, chunk_type chunk);
 };
+

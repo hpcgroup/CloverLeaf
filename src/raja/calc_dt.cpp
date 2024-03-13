@@ -19,6 +19,7 @@
 
 #include "calc_dt.h"
 #include "context.h"
+#include "timer.h"
 #include <cmath>
 #include <numeric>
 #include <string>
@@ -95,6 +96,11 @@ void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, 
 
   if (globals.profiler_on) {
     globals.profiler.timestep += timer() - globals.profiler.kernel_time;
+    globals.profiler.kernel_time = timer();
+  }
+
+  if (globals.profiler_on) {
+    globals.profiler.device_to_host += timer() - globals.profiler.kernel_time;
     globals.profiler.kernel_time = timer();
   }
 

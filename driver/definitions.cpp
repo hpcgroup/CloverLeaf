@@ -52,4 +52,4 @@ chunk_type::chunk_type(const std::array<int, 4> &chunkNeighbours, const int task
       left_boundary(leftBoundary), right_boundary(rightBoundary), bottom_boundary(bottomBoundary), top_boundary(topBoundary) {}
 global_variables::global_variables(const global_config &config, clover::context queue, chunk_type chunk)
     : config(config), context(std::move(queue)), chunk(std::move(chunk)), dt(config.dtinit), dtold(config.dtinit),
-      profiler_on(config.profiler_on) {}
+      profiler_on(config.profiler_on), should_sync_profile(config.should_sync_profile) {}

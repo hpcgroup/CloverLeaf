@@ -20,6 +20,7 @@
 #include "visit.h"
 #include "ideal_gas.h"
 #include "timer.h"
+#include "sync.h"
 #include "update_halo.h"
 #include "viscosity.h"
 
@@ -59,7 +60,10 @@ void visit(global_variables &globals, parallel_ &parallel) {
   for (int tile = 0; tile < globals.config.tiles_per_chunk; ++tile) {
     ideal_gas(globals, tile, false);
   }
-  if (globals.profiler_on) globals.profiler.ideal_gas += timer() - kernel_time;
+  if (globals.profiler_on) {
+    if (globals.should_sync_profile) clover_sync();
+    globals.profiler.ideal_gas += timer() - kernel_time;
+  }
 
   int fields[NUM_FIELDS];
   for (int i = 0; i < NUM_FIELDS; ++i)

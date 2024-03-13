@@ -8,9 +8,6 @@ register_flag_optional(SYNC_ALL_KERNELS
         "OFF")
 
 macro(setup)
-    if (POLICY CMP0104)
-        cmake_policy(SET CMP0104 OLD)
-    endif ()
 
     set(CMAKE_CXX_STANDARD 17)
 
@@ -22,15 +19,20 @@ macro(setup)
     if (${RAJA_BACK_END} STREQUAL "CUDA")
         enable_language(CUDA)
         set(CMAKE_CUDA_STANDARD 17)
-        set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
+        set(CMAKE_CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 
         set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -std=c++17 -extended-lambda --expt-relaxed-constexpr --restrict --keep -use_fast_math")
 
         set_source_files_properties(${IMPL_SOURCES} PROPERTIES LANGUAGE CUDA)
         register_definitions(RAJA_TARGET_GPU)
     elseif (${RAJA_BACK_END} STREQUAL "HIP")
-        # Set CMAKE_CXX_COMPILER to hipcc or HIP capable compiler
         find_package(hip REQUIRED)
+
+        enable_language(HIP)
+        set(CMAKE_HIP_STANDARD 17)
+
+        set_source_files_properties(${IMPL_SOURCES} PROPERTIES LANGUAGE HIP)
+
         register_definitions(RAJA_TARGET_GPU)
     elseif (${RAJA_BACK_END} STREQUAL "SYCL")
         register_definitions(RAJA_TARGET_GPU)
