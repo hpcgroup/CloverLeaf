@@ -134,11 +134,19 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
       kernel_time = timer();
     }
 
+#ifdef NO_STD_REDUCE
+    for (auto v: vol_host) vol += v;
+    for (auto v: mass_host) mass += v;
+    for (auto v: ie_host) ie += v;
+    for (auto v: ke_host) ke += v;
+    for (auto v: press_host) press += v;
+#else
     vol = std::reduce(vol_host.begin(), vol_host.end(), vol, std::plus<>());
     mass = std::reduce(mass_host.begin(), mass_host.end(), mass, std::plus<>());
     ie = std::reduce(ie_host.begin(), ie_host.end(), ie, std::plus<>());
     ke = std::reduce(ke_host.begin(), ke_host.end(), ke, std::plus<>());
     press = std::reduce(press_host.begin(), press_host.end(), press, std::plus<>());
+#endif
   }
   vol_buffer.release();
   mass_buffer.release();
