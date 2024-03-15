@@ -171,7 +171,7 @@ void generate_chunk(const int tile, global_variables &globals) {
         }
       } else if (state_geometry[state] == g_circ) {
         double radius =
-            std::sqrt((field.cellx[j] - x_cent) * (field.cellx[j] - x_cent) + (field.celly[k] - y_cent) * (field.celly[k] - y_cent));
+            sycl::sqrt((field.cellx[j] - x_cent) * (field.cellx[j] - x_cent) + (field.celly[k] - y_cent) * (field.celly[k] - y_cent));
         if (radius <= state_radius[state]) {
           field.energy0(x, y) = state_energy[state];
           field.density0(x, y) = state_density[state];
