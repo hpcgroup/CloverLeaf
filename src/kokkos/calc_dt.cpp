@@ -76,10 +76,16 @@ void calc_dt_kernel(int x_min, int x_max, int y_min, int y_max, double dtmin, do
           dtdivt = g_big;
         }
 
+	/*
         dt_min_val = Kokkos::min(dt_min_val, dtct);
         dt_min_val = Kokkos::min(dt_min_val, dtut);
         dt_min_val = Kokkos::min(dt_min_val, dtvt);
         dt_min_val = Kokkos::min(dt_min_val, dtdivt);
+	*/
+        dt_min_val += dtct;
+        dt_min_val += dtut;
+        dt_min_val += dtvt;
+        dt_min_val += dtdivt;
       },
       Kokkos::Sum<double>(dt_min_val));
 
@@ -92,6 +98,9 @@ void calc_dt_kernel(int x_min, int x_max, int y_min, int y_max, double dtmin, do
   // xl_pos = cellx(jldt+1); // Offset by 1 because of Fortran halos in original code
   // yl_pos = celly(kldt+1);
 
+  // Josh: Added to make dt_min_val reasonable.
+  dt_min_val /= 4*(x_max - x_min)*(y_max - y_min);
+  
   if (dt_min_val < dtmin) small = 1;
 
   if (small != 0) {
