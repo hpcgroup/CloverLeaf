@@ -81,7 +81,7 @@ void calc_dt_kernel(int x_min, int x_max, int y_min, int y_max, double dtmin, do
         dt_min_val = Kokkos::min(dt_min_val, dtvt);
         dt_min_val = Kokkos::min(dt_min_val, dtdivt);
       },
-      Kokkos::Min<double>(dt_min_val));
+      Kokkos::Sum<double>(dt_min_val));
 
   //  Extract the mimimum timestep information
   dtl_control = 10.01 * (jk_control - (int)(jk_control));
