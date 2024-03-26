@@ -34,7 +34,7 @@ void calc_dt_kernel(int x_min, int x_max, int y_min, int y_max, double dtmin, do
 
   small = 0;
   dt_min_val = g_big;
-  Kokkos::View<double *> dt_min_val_buffer("dt_min_val");
+  Kokkos::View<double> dt_min_val_buffer("dt_min_val");
   double jk_control = 1.1;
 
   // DO k=y_min,y_max
