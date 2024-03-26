@@ -108,44 +108,10 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
     }
   }
 
-  //    summary s;
-  //
-  //    for (int tile = 0; tile < globals.config.tiles_per_chunk; ++tile) {
-  //      tile_type &t = globals.chunk.tiles[tile];
-  //
-  //      int ymax = t.info.t_ymax;
-  //      int ymin = t.info.t_ymin;
-  //      int xmax = t.info.t_xmax;
-  //      int xmin = t.info.t_xmin;
-  //      field_type &field = t.field;
-  //
-  //      auto r = clover::range<size_t>(0, (ymax - ymin + 1) * (xmax - xmin + 1));
-  //      s = std::transform_reduce(r.begin(), r.end(), s, std::plus<>(), [=](size_t idx) {
-  //        const size_t j = xmin + 1 + idx % (xmax - xmin + 1);
-  //        const size_t k = ymin + 1 + idx / (xmax - xmin + 1);
-  //        double vsqrd = 0.0;
-  //        for (size_t kv = k; kv <= k + 1; ++kv) {
-  //          for (size_t jv = j; jv <= j + 1; ++jv) {
-  //            vsqrd += 0.25 * (field.xvel0(jv, kv) * field.xvel0(jv, kv) + field.yvel0(jv, kv) * field.yvel0(jv, kv));
-  //          }
-  //        }
-  //        double cell_vol = field.volume(j, k);
-  //        double cell_mass = cell_vol * field.density0(j, k);
-  //
-  //        return summary{.vol = cell_vol,
-  //                       .mass = cell_mass,
-  //                       .ie = cell_mass * field.energy0(j, k),
-  //                       .ke = cell_mass * 0.5 * vsqrd,
-  //                       .press = cell_vol * field.pressure(j, k)};
-  //      });
-  //    }
-  //
-  //    auto [vol, mass, ie, ke, press] = s;
-
   if (globals.profiler_on) {
     clover::checkError(rajaDeviceSynchronize());
     globals.profiler.summary += timer() - kernel_time;
   }
 
-  clover_report_step(globals, parallel, vol, mass, ie, ke, mass);
+  clover_report_step(globals, parallel, vol, mass, ie, ke, press);
 }
