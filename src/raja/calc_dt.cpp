@@ -58,12 +58,10 @@ void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, 
   // y = y_min + 1  |  y_max + 2
 
   int range = (xEnd - xStart) * (yEnd - yStart);
+  RAJA::ReduceMin<reduce_policy, double> raja_min(g_big);
   RAJA::RangeSegment arange(0, range);
 
-  dt_min_val = g_big;
-  RAJA::forall<reduce_policy>(arange,
-      RAJA::expt::Reduce<RAJA::operators::minimum>(&dt_min_val),
-      [=] RAJA_HOST_DEVICE(int v, double &_dt_min_val) {
+  RAJA::forall<raja_default_policy>(arange, [=] RAJA_HOST_DEVICE(int v) {
     const auto i = xStart + (v % sizeX);
     const auto j = yStart + (v / sizeX);
 
@@ -91,7 +89,7 @@ void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, 
       dtdivt = g_big;
     }
     double local_min = std::fmin(dtct, std::fmin(dtut, std::fmin(dtvt, dtdivt)));
-    _dt_min_val = RAJA_MIN(local_min, _dt_min_val);
+    raja_min.min(local_min);
   });
 
   if (globals.profiler_on) {
@@ -99,10 +97,7 @@ void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, 
     globals.profiler.kernel_time = timer();
   }
 
-  if (globals.profiler_on) {
-    globals.profiler.device_to_host += timer() - globals.profiler.kernel_time;
-    globals.profiler.kernel_time = timer();
-  }
+  dt_min_val = raja_min.get();
 
   if (globals.profiler_on) {
     globals.profiler.device_to_host += timer() - globals.profiler.kernel_time;

@@ -192,7 +192,7 @@ void raja_copy(T* dest, T* src, size_t bytes){
 #if defined(RAJA_TARGET_GPU)
 #if defined(RAJA_ENABLE_CUDA)
 using raja_default_policy= RAJA::cuda_exec<RAJA_BLOCK_SIZE>;
-using reduce_policy = RAJA::cuda_exec_occ_calc<RAJA_BLOCK_SIZE>;
+using reduce_policy = RAJA::cuda_reduce;
 using rajaDeviceProp = cudaDeviceProp;
 using rajaError_t = cudaError_t;
 
@@ -242,7 +242,7 @@ static inline rajaError_t rajaGetDeviceCount(int *count){
 
 #elif defined(RAJA_ENABLE_HIP)
 using raja_default_policy= RAJA::hip_exec<RAJA_BLOCK_SIZE>;
-using reduce_policy = RAJA::hip_exec_occ_calc<RAJA_BLOCK_SIZE>;
+using reduce_policy = RAJA::hip_reduce;
 using rajaDeviceProp = hipDeviceProp_t;
 using rajaError_t = hipError_t;
 
