@@ -34,9 +34,9 @@
 struct field_summary_functor {
 
   // Structure of variables to reduce
-  typedef struct {
+  typedef struct value {
     double vol, mass, ie, ke, press;
-    void operator+=(const value_type &input) {
+    void operator+=(const struct value &input) {
       vol += input.vol;
       mass += input.mass;
       ie += input.ie;
