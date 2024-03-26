@@ -64,13 +64,6 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
   double ke = 0.0;
   double press = 0.0;
 
-  const int BLOCK = 256;
-  clover::Buffer1D<double> vol_buffer(globals.context, BLOCK);
-  clover::Buffer1D<double> mass_buffer(globals.context, BLOCK);
-  clover::Buffer1D<double> ie_buffer(globals.context, BLOCK);
-  clover::Buffer1D<double> ke_buffer(globals.context, BLOCK);
-  clover::Buffer1D<double> press_buffer(globals.context, BLOCK);
-
   for (int tile = 0; tile < globals.config.tiles_per_chunk; ++tile) {
     tile_type &t = globals.chunk.tiles[tile];
 
@@ -87,7 +80,7 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
     RAJA::ReduceSum<reduce_policy, double> RAJApress(press);
 
     int range = (ymax - ymin + 1) * (xmax - xmin + 1);
-//    clover::par_reduce<BLOCK, BLOCK>([=] __device__(int gid) {
+
     RAJA::forall<raja_default_policy>(RAJA::TypedRangeSegment<int>(0, range),
         [=] RAJA_HOST_DEVICE (int gid) {
       int v = gid;
@@ -126,11 +119,6 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
       kernel_time = timer();
     }
   }
-  vol_buffer.release();
-  mass_buffer.release();
-  ie_buffer.release();
-  ke_buffer.release();
-  press_buffer.release();
 
   //    summary s;
   //
@@ -165,12 +153,6 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
   //    }
   //
   //    auto [vol, mass, ie, ke, press] = s;
-
-  clover_sum(vol);
-  clover_sum(mass);
-  clover_sum(ie);
-  clover_sum(ke);
-  clover_sum(press);
 
   if (globals.profiler_on) {
     clover::checkError(rajaDeviceSynchronize());
