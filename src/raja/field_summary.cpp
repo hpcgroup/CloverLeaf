@@ -73,49 +73,37 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
     int xmin = t.info.t_xmin;
     field_type &field = t.field;
 
-    RAJA::ReduceSum<reduce_policy, double> RAJAvol(vol);
-    RAJA::ReduceSum<reduce_policy, double> RAJAmass(mass);
-    RAJA::ReduceSum<reduce_policy, double> RAJAie(ie);
-    RAJA::ReduceSum<reduce_policy, double> RAJAke(ke);
-    RAJA::ReduceSum<reduce_policy, double> RAJApress(press);
-
     int range = (ymax - ymin + 1) * (xmax - xmin + 1);
 
     RAJA::forall<raja_default_policy>(RAJA::TypedRangeSegment<int>(0, range),
-        [=] RAJA_HOST_DEVICE (int gid) {
-      int v = gid;
+      RAJA::expt::Reduce<RAJA::operators::plus>(&vol),
+      RAJA::expt::Reduce<RAJA::operators::plus>(&mass),
+      RAJA::expt::Reduce<RAJA::operators::plus>(&ie),
+      RAJA::expt::Reduce<RAJA::operators::plus>(&ke),
+      RAJA::expt::Reduce<RAJA::operators::plus>(&press),
+      [=] RAJA_HOST_DEVICE (int gid, double &_vol, double &_mass, double &_ie, double &_ke, double &_press) {
+        int v = gid;
 
-      const size_t j = xmin + 1 + v % (xmax - xmin + 1);
-      const size_t k = ymin + 1 + v / (xmax - xmin + 1);
-      double vsqrd = 0.0;
-      for (size_t kv = k; kv <= k + 1; ++kv) {
-        for (size_t jv = j; jv <= j + 1; ++jv) {
-          vsqrd += 0.25 * (field.xvel0(jv, kv) * field.xvel0(jv, kv) + field.yvel0(jv, kv) * field.yvel0(jv, kv));
+        const size_t j = xmin + 1 + v % (xmax - xmin + 1);
+        const size_t k = ymin + 1 + v / (xmax - xmin + 1);
+        double vsqrd = 0.0;
+        for (size_t kv = k; kv <= k + 1; ++kv) {
+          for (size_t jv = j; jv <= j + 1; ++jv) {
+            vsqrd += 0.25 * (field.xvel0(jv, kv) * field.xvel0(jv, kv) + field.yvel0(jv, kv) * field.yvel0(jv, kv));
+          }
         }
-      }
-      double cell_vol = field.volume(j, k);
-      double cell_mass = cell_vol * field.density0(j, k);
+        double cell_vol = field.volume(j, k);
+        double cell_mass = cell_vol * field.density0(j, k);
 
-      RAJAvol += cell_vol;
-      RAJAmass += cell_mass;
-      RAJAie  += cell_mass * field.energy0(j, k);
-      RAJAke += cell_mass * 0.5 * vsqrd;
-      RAJApress += cell_vol * field.pressure(j, k);
+        _vol += cell_vol;
+        _mass += cell_mass;
+        _ie  += cell_mass * field.energy0(j, k);
+        _ke += cell_mass * 0.5 * vsqrd;
+        _press += cell_vol * field.pressure(j, k);
     });
 
     if (globals.profiler_on) {
       globals.profiler.summary += timer() - kernel_time;
-      kernel_time = timer();
-    }
-
-    vol = RAJAvol.get();
-    mass = RAJAmass.get();
-    ie = RAJAie.get();
-    ke = RAJAke.get();
-    press = RAJApress.get();
-
-    if (globals.profiler_on) {
-      globals.profiler.device_to_host += timer() - kernel_time;
       kernel_time = timer();
     }
   }
