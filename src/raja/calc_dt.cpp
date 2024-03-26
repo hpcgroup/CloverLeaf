@@ -58,49 +58,43 @@ void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, 
   // y = y_min + 1  |  y_max + 2
 
   int range = (xEnd - xStart) * (yEnd - yStart);
-  RAJA::ReduceMin<reduce_policy, double> raja_min(g_big);
+  dt_min_val = g_big;
   RAJA::RangeSegment arange(0, range);
 
-  RAJA::forall<raja_default_policy>(arange, [=] RAJA_HOST_DEVICE(int v) {
-    const auto i = xStart + (v % sizeX);
-    const auto j = yStart + (v / sizeX);
+  RAJA::forall<reduce_policy>(arange,
+    RAJA::expt::Reduce<RAJA::operators::minimum>(&dt_min_val),
+    [=] RAJA_HOST_DEVICE(int v, double &_dt_min_val) {
+      const auto i = xStart + (v % sizeX);
+      const auto j = yStart + (v / sizeX);
 
-    double dsx = celldx[i];
-    double dsy = celldy[j];
+      double dsx = celldx[i];
+      double dsy = celldy[j];
 
-    double cc = soundspeed(i, j) * soundspeed(i, j);
-    cc = cc + 2.0 * viscosity_a(i, j) / density0(i, j);
-    cc = std::fmax(std::sqrt(cc), g_small);
-    double dtct = dtc_safe * std::fmin(dsx, dsy) / cc;
-    double div = 0.0;
-    double dv1 = (xvel0(i, j) + xvel0(i + 0, j + 1)) * xarea(i, j);
-    double dv2 = (xvel0(i + 1, j + 0) + xvel0(i + 1, j + 1)) * xarea(i + 1, j + 0);
-    div = div + dv2 - dv1;
-    double dtut = dtu_safe * 2.0 * volume(i, j) / std::fmax(std::fmax(std::fabs(dv1), std::fabs(dv2)), g_small * volume(i, j));
-    dv1 = (yvel0(i, j) + yvel0(i + 1, j + 0)) * yarea(i, j);
-    dv2 = (yvel0(i + 0, j + 1) + yvel0(i + 1, j + 1)) * yarea(i + 0, j + 1);
-    div = div + dv2 - dv1;
-    double dtvt = dtv_safe * 2.0 * volume(i, j) / std::fmax(std::fmax(std::fabs(dv1), std::fabs(dv2)), g_small * volume(i, j));
-    div = div / (2.0 * volume(i, j));
-    double dtdivt;
-    if (div < -g_small) {
-      dtdivt = dtdiv_safe * (-1.0 / div);
-    } else {
-      dtdivt = g_big;
-    }
-    double local_min = std::fmin(dtct, std::fmin(dtut, std::fmin(dtvt, dtdivt)));
-    raja_min.min(local_min);
+      double cc = soundspeed(i, j) * soundspeed(i, j);
+      cc = cc + 2.0 * viscosity_a(i, j) / density0(i, j);
+      cc = std::fmax(std::sqrt(cc), g_small);
+      double dtct = dtc_safe * std::fmin(dsx, dsy) / cc;
+      double div = 0.0;
+      double dv1 = (xvel0(i, j) + xvel0(i + 0, j + 1)) * xarea(i, j);
+      double dv2 = (xvel0(i + 1, j + 0) + xvel0(i + 1, j + 1)) * xarea(i + 1, j + 0);
+      div = div + dv2 - dv1;
+      double dtut = dtu_safe * 2.0 * volume(i, j) / std::fmax(std::fmax(std::fabs(dv1), std::fabs(dv2)), g_small * volume(i, j));
+      dv1 = (yvel0(i, j) + yvel0(i + 1, j + 0)) * yarea(i, j);
+      dv2 = (yvel0(i + 0, j + 1) + yvel0(i + 1, j + 1)) * yarea(i + 0, j + 1);
+      div = div + dv2 - dv1;
+      double dtvt = dtv_safe * 2.0 * volume(i, j) / std::fmax(std::fmax(std::fabs(dv1), std::fabs(dv2)), g_small * volume(i, j));
+      div = div / (2.0 * volume(i, j));
+      double dtdivt;
+      if (div < -g_small) {
+        dtdivt = dtdiv_safe * (-1.0 / div);
+      } else {
+        dtdivt = g_big;
+      }
+      _dt_min_val = std::fmin(std::fmin(dtct, std::fmin(dtut, std::fmin(dtvt, dtdivt))), _dt_min_val);
   });
 
   if (globals.profiler_on) {
     globals.profiler.timestep += timer() - globals.profiler.kernel_time;
-    globals.profiler.kernel_time = timer();
-  }
-
-  dt_min_val = raja_min.get();
-
-  if (globals.profiler_on) {
-    globals.profiler.device_to_host += timer() - globals.profiler.kernel_time;
     globals.profiler.kernel_time = timer();
   }
 
