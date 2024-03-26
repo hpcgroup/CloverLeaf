@@ -75,7 +75,7 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
 
     int range = (ymax - ymin + 1) * (xmax - xmin + 1);
 
-    RAJA::forall<raja_default_policy>(RAJA::TypedRangeSegment<int>(0, range),
+    RAJA::forall<reduce_policy>(RAJA::TypedRangeSegment<int>(0, range),
       RAJA::expt::Reduce<RAJA::operators::plus>(&vol),
       RAJA::expt::Reduce<RAJA::operators::plus>(&mass),
       RAJA::expt::Reduce<RAJA::operators::plus>(&ie),

@@ -61,7 +61,7 @@ void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, 
   dt_min_val = g_big;
   RAJA::RangeSegment arange(0, range);
 
-  RAJA::forall<raja_default_policy>(arange, 
+  RAJA::forall<reduce_policy>(arange,
     RAJA::expt::Reduce<RAJA::operators::minimum>(&dt_min_val),
     [=] RAJA_HOST_DEVICE(int v, double &_dt_min_val) {
       const auto i = xStart + (v % sizeX);
