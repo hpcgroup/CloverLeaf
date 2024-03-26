@@ -20,7 +20,6 @@ src.*
 tags
 
 # CMake
-spack*
 cmake-build-*/
 Build/
 build*
