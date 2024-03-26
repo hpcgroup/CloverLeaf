@@ -151,20 +151,55 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
   double press = 0.0;
 
   for (int tile = 0; tile < globals.config.tiles_per_chunk; ++tile) {
-    field_summary_functor functor(globals.chunk.tiles[tile].info.t_xmin, globals.chunk.tiles[tile].info.t_xmax,
-                                  globals.chunk.tiles[tile].info.t_ymin, globals.chunk.tiles[tile].info.t_ymax,
-                                  globals.chunk.tiles[tile].field.volume.view, globals.chunk.tiles[tile].field.density0.view,
-                                  globals.chunk.tiles[tile].field.energy0.view, globals.chunk.tiles[tile].field.pressure.view,
-                                  globals.chunk.tiles[tile].field.xvel0.view, globals.chunk.tiles[tile].field.yvel0.view);
+    // field_summary_functor functor(globals.chunk.tiles[tile].info.t_xmin, globals.chunk.tiles[tile].info.t_xmax,
+    //                               globals.chunk.tiles[tile].info.t_ymin, globals.chunk.tiles[tile].info.t_ymax,
+    //                               globals.chunk.tiles[tile].field.volume.view, globals.chunk.tiles[tile].field.density0.view,
+    //                               globals.chunk.tiles[tile].field.energy0.view, globals.chunk.tiles[tile].field.pressure.view,
+    //                               globals.chunk.tiles[tile].field.xvel0.view, globals.chunk.tiles[tile].field.yvel0.view);
+    int x_min = globals.chunk.tiles[tile].info.t_xmin;
+    int x_max = globals.chunk.tiles[tile].info.t_xmax;
+    int y_min = globals.chunk.tiles[tile].info.t_ymin;
+    int y_max = globals.chunk.tiles[tile].info.t_ymax;
+    Kokkos::View<double **> volume(globals.chunk.tiles[tile].field.volume.view);
+    Kokkos::View<double **> density0(globals.chunk.tiles[tile].field.density0.view);
+    Kokkos::View<double **> energy0(globals.chunk.tiles[tile].field.energy0.view);
+    Kokkos::View<double **> pressure(globals.chunk.tiles[tile].field.pressure.view);
+    Kokkos::View<double **> xvel0(globals.chunk.tiles[tile].field.xvel0.view);
+    Kokkos::View<double **> yvel0(globals.chunk.tiles[tile].field.yvel0.view);
 
     Kokkos::View<typename field_summary_functor::value_type> result_buffer;
     typename field_summary_functor::value_type result;
 
     // Use a 1D parallel for because 2D reduction results in shared memory segfaults on a GPU
-    Kokkos::parallel_reduce("field_summary",
-                            (globals.chunk.tiles[tile].info.t_ymax - globals.chunk.tiles[tile].info.t_ymin + 1) *
-                                (globals.chunk.tiles[tile].info.t_xmax - globals.chunk.tiles[tile].info.t_xmin + 1),
-                            functor, result_buffer);
+    Kokkos::parallel_reduce(
+        "field_summary", (y_max - y_min + 1) * (x_max - x_min + 1),
+        KOKKOS_LAMBDA(const int i, field_summary_functor::value_type &update) {
+          const int j = x_min + 1 + i % (x_max - x_min + 1);
+          const int k = y_min + 1 + i / (x_max - x_min + 1);
+
+          //
+          // START OF THE KERNEL
+          //
+
+          double vsqrd = 0.0;
+          for (int kv = k; kv <= k + 1; ++kv) {
+            for (int jv = j; jv <= j + 1; ++jv) {
+              vsqrd += 0.25 * (xvel0(jv, kv) * xvel0(jv, kv) + yvel0(jv, kv) * yvel0(jv, kv));
+            }
+          }
+          double cell_vol = volume(j, k);
+          double cell_mass = cell_vol * density0(j, k);
+          update.vol += cell_vol;
+          update.mass += cell_mass;
+          update.ie += cell_mass * energy0(j, k);
+          update.ke += cell_mass * 0.5 * vsqrd;
+          update.press += cell_vol * pressure(j, k);
+
+          //
+          // END  OF THE KERNEL
+          //
+        },
+        Kokkos::Sum(result_buffer));
 
     Kokkos::deep_copy(result, result_buffer);
 
