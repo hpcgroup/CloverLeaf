@@ -157,13 +157,16 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
                                   globals.chunk.tiles[tile].field.energy0.view, globals.chunk.tiles[tile].field.pressure.view,
                                   globals.chunk.tiles[tile].field.xvel0.view, globals.chunk.tiles[tile].field.yvel0.view);
 
+    Kokkos::View<typename field_summary_functor::value_type> result_buffer;
     typename field_summary_functor::value_type result;
 
     // Use a 1D parallel for because 2D reduction results in shared memory segfaults on a GPU
     Kokkos::parallel_reduce("field_summary",
                             (globals.chunk.tiles[tile].info.t_ymax - globals.chunk.tiles[tile].info.t_ymin + 1) *
                                 (globals.chunk.tiles[tile].info.t_xmax - globals.chunk.tiles[tile].info.t_xmin + 1),
-                            functor, result);
+                            functor, result_buffer);
+
+    Kokkos::deep_copy(result, result_buffer);
 
     vol = result.vol;
     mass = result.mass;
