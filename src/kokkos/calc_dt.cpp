@@ -34,6 +34,7 @@ void calc_dt_kernel(int x_min, int x_max, int y_min, int y_max, double dtmin, do
 
   small = 0;
   dt_min_val = g_big;
+  Kokkos::View<double *> dt_min_val_buffer("dt_min_val");
   double jk_control = 1.1;
 
   // DO k=y_min,y_max
@@ -81,7 +82,9 @@ void calc_dt_kernel(int x_min, int x_max, int y_min, int y_max, double dtmin, do
         dt_min_val = Kokkos::min(dt_min_val, dtvt);
         dt_min_val = Kokkos::min(dt_min_val, dtdivt);
       },
-      Kokkos::Min<double>(dt_min_val));
+      Kokkos::Min<double, Kokkos::DefaultExecutionSpace>(dt_min_val_buffer));
+  
+  Kokkos::deep_copy(dt_min_val, dt_min_val_buffer);
 
   //  Extract the mimimum timestep information
   dtl_control = 10.01 * (jk_control - (int)(jk_control));
