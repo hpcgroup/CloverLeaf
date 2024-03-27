@@ -35,11 +35,18 @@ void calc_dt_kernel(int x_min, int x_max, int y_min, int y_max, double dtmin, do
   small = 0;
   dt_min_val = g_big;
   double jk_control = 1.1;
+  
+  const int BLOCK = 256;
+  Kokkos::View<double *> dt_min_val_buffer("dt_min_val", BLOCK);
+  Kokkos::View<double *>::HostMirror dt_min_val_host = Kokkos::create_mirror_view(dt_min_val_buffer);
+
 
   // DO k=y_min,y_max
   //   DO j=x_min,x_max
-  Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({x_min + 1, y_min + 1}, {x_max + 2, y_max + 2});
-  Kokkos::parallel_reduce(
+  //Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({x_min + 1, y_min + 1}, {x_max + 2, y_max + 2});
+  
+  Kokkos::RangePolicy<> policy({x_min + 1, y_min + 1}, {x_max + 2, y_max + 2});
+  Kokkos::parallel_for(
       "calc_dt", policy,
       KOKKOS_LAMBDA(const int j, const int k, double &dt_min_val) {
         double dsx = celldx(j);
@@ -81,7 +88,7 @@ void calc_dt_kernel(int x_min, int x_max, int y_min, int y_max, double dtmin, do
         dt_min_val = Kokkos::min(dt_min_val, dtvt);
         dt_min_val = Kokkos::min(dt_min_val, dtdivt);
       },
-      Kokkos::Min<double>(dt_min_val));
+      Kokkos::Min<double>(dt_min_val_buffer));
 
   //  Extract the mimimum timestep information
   dtl_control = 10.01 * (jk_control - (int)(jk_control));
