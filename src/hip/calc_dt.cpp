@@ -19,6 +19,7 @@
 
 #include "calc_dt.h"
 #include "context.h"
+#include "sync.h"
 #include "hip/hip_runtime.h"
 #include "../../driver/timer.h"
 #include <cmath>
@@ -96,6 +97,7 @@ void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, 
 
   // JMK: Copies data back from device to host
   if (globals.profiler_on) {
+    if (globals.should_sync_profile) clover_sync();
     globals.profiler.timestep += timer() - globals.profiler.kernel_time;
     globals.profiler.kernel_time = timer();
   }

@@ -19,6 +19,7 @@
 
 #include "field_summary.h"
 #include "context.h"
+#include "sync.h"
 #include "hip/hip_runtime.h"
 #include "ideal_gas.h"
 #include "report.h"
@@ -119,6 +120,7 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
     });
 
     if (globals.profiler_on) {
+      if (globals.should_sync_profile) clover_sync();
       globals.profiler.summary += timer() - kernel_time;
       kernel_time = timer();
     }
