@@ -19,5 +19,6 @@
 
 #include "sync.h"
 
-void clover_sync() {}
-
+void clover_sync() {
+    clover::checkError(cudaDeviceSynchronize());
+}
