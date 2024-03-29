@@ -19,6 +19,7 @@
 
 #include "field_summary.h"
 #include "context.h"
+#include "sync.h"
 #include "hip/hip_runtime.h"
 #include "ideal_gas.h"
 #include "report.h"

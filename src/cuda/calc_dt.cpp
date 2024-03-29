@@ -19,6 +19,7 @@
 
 #include "calc_dt.h"
 #include "context.h"
+#include "sync.h"
 #include "../../driver/timer.h"
 #include <cmath>
 #include <numeric>
