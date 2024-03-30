@@ -48,8 +48,8 @@ void calc_dt_kernel(int x_min, int x_max, int y_min, int y_max, double dtmin, do
   Kokkos::parallel_reduce(
       "calc_dt", policy,
       KOKKOS_LAMBDA(const int i, double &dt_min_val) {
-        const auto j = xStart + (v % sizeX);
-        const auto k = yStart + (v / sizeX);
+        const auto j = xStart + (i % sizeX);
+        const auto k = yStart + (i / sizeX);
 
         double dsx = celldx(j);
         double dsy = celldy(k);
