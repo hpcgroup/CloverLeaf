@@ -35,13 +35,22 @@ void calc_dt_kernel(int x_min, int x_max, int y_min, int y_max, double dtmin, do
   small = 0;
   dt_min_val = g_big;
   double jk_control = 1.1;
+  
+  int xStart = x_min + 1, xEnd = x_max + 2;
+  int yStart = y_min + 1, yEnd = y_max + 2;
+  int sizeX = xEnd - xStart;
 
   // DO k=y_min,y_max
   //   DO j=x_min,x_max
-  Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({x_min + 1, y_min + 1}, {x_max + 2, y_max + 2});
+  //Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({x_min + 1, y_min + 1}, {x_max + 2, y_max + 2});
+  int range = (xEnd - xStart) * (yEnd - yStart);
+  Kokkos::RangePolicy<> policy(0, range);
   Kokkos::parallel_reduce(
       "calc_dt", policy,
-      KOKKOS_LAMBDA(const int j, const int k, double &dt_min_val) {
+      KOKKOS_LAMBDA(const int i, double &dt_min_val) {
+        const auto j = xStart + (i % sizeX);
+        const auto k = yStart + (i / sizeX);
+
         double dsx = celldx(j);
         double dsy = celldy(k);
 
