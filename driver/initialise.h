@@ -36,7 +36,6 @@ struct run_args {
   staging_buffer staging_buffer;
   std::optional<bool> profile;
   std::optional<bool> should_sync_profile;
-  int warmup_steps = 0;
   std::string csv_file;
 };
 
@@ -71,8 +70,6 @@ std::pair<T, run_args> list_and_parse(bool silent, const std::vector<T> &devices
         << "                                         Defaults to auto which elides the buffer if a device-aware (i.e CUDA-aware) is used.\n"
         << "                                         This option is no-op for CPU-only models.\n"
         << "                                         Setting this to false on an MPI that is not device-aware may cause a segfault.\n"
-        << "      --warmup,-w               <NUM>    Treat the first NUM iterations as warmup iterations and exclude them from all timing\n"
-        << "      --csv,-c                 <FILE>    Path to a CSV file FILE in which to save timing information\n"
         << "      --sync,-s                          Enables manual syncs in profiling code\n"
         << std::endl;
   };
@@ -152,8 +149,6 @@ std::pair<T, run_args> list_and_parse(bool silent, const std::vector<T> &devices
           std::exit(EXIT_FAILURE);
         }
       });
-    } else if (arg == "--warmup" || arg == "-w") {
-      readParam(i, "--warmup,-w specified but no number given", [&config](const auto &param) { config.warmup_steps = std::stoi(param); });
     } else if (arg == "--csv" || arg == "-c") {
       readParam(i, "--csv,-c specified but no path was given", [&config](const auto &param) { config.csv_file = param; });
     } else if (arg == "--sync" || arg == "-s") {
