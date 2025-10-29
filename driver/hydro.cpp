@@ -34,7 +34,6 @@
 #include <utility>
 
 extern std::ostream g_out;
-extern std::ostream csv_out;
 
 int maxloc(const std::vector<double> &totals, const int len) {
   int loc = -1;
@@ -46,21 +45,6 @@ int maxloc(const std::vector<double> &totals, const int len) {
     }
   }
   return loc;
-}
-
-void writeCSV(std::ostream &file,
-    const std::vector<std::pair<std::string, double>> &times) {
-  // Header
-  for (const auto &p : times) {
-    file << p.first << ",";
-  }
-  file << std::endl;
-
-  // Timeing results, in milliseconds
-  for (const auto &p : times) {
-    file << 1000 * p.second << ",";
-  }
-  file << std::endl;
 }
 
 void hydro(global_variables &globals, parallel_ &parallel) {
@@ -225,32 +209,6 @@ void hydro(global_variables &globals, parallel_ &parallel) {
           };
           writeProfile(g_out);
           writeProfile(std::cout);
-
-          if (globals.config.using_csv) {
-            std::cout << "Saving timings to CSV\n" << std::endl;
-            std::vector<std::pair<std::string, double>> cols;
-            cols.emplace_back("timestep", p.timestep);
-            cols.emplace_back("ideal_gas", p.ideal_gas);
-            cols.emplace_back("viscosity", p.viscosity);
-            cols.emplace_back("PdV", p.PdV);
-            cols.emplace_back("revert", p.revert);
-            cols.emplace_back("acceleration", p.acceleration);
-            cols.emplace_back("fluxes", p.flux);
-            cols.emplace_back("cell_advection", p.cell_advection);
-            cols.emplace_back("mom_advection", p.mom_advection);
-            cols.emplace_back("reset", p.reset);
-            cols.emplace_back("summary", p.summary);
-            cols.emplace_back("visits", p.visit);
-            cols.emplace_back("tile_halo_exchange", p.tile_halo_exchange);
-            cols.emplace_back("self_halo_exchange", p.self_halo_exchange);
-            cols.emplace_back("mpi_halo_exchange", p.mpi_halo_exchange);
-            cols.emplace_back("total_kernel", kernel_total);
-            cols.emplace_back("host_to_device", p.host_to_device);
-            cols.emplace_back("device_to_host", p.device_to_host);
-            cols.emplace_back("other", remainder);
-            cols.emplace_back("total", wall_clock);
-            writeCSV(csv_out, cols);
-          }
         }
       }
 

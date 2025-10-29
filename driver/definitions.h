@@ -237,7 +237,6 @@ struct global_config {
   bool should_sync_profile;
   double end_time;
   int end_step;
-  bool using_csv;
 
   double dtinit;
   double dtmin;
