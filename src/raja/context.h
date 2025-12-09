@@ -33,6 +33,9 @@
 #include <umpire/Umpire.hpp>
 #include "umpire/TypedAllocator.hpp"
 #include "RAJA/RAJA.hpp"
+#ifdef RAJA_ENABLE_SYCL
+#include "RAJA/tpl/camp/include/camp/resource/sycl.hpp"
+#endif
 
 #define CLOVER_DEFAULT_BLOCK_SIZE (256)
 #define DEVICE_KERNEL __host__ __device__
@@ -297,6 +300,8 @@ static inline rajaError_t rajaGetDeviceCount(int *count){
 */
 using raja_default_policy = RAJA::sycl_exec<RAJA_BLOCK_SIZE>;
 using reduce_policy = RAJA::sycl_reduce;
+using rajaError_t = int;
+using rajaDeviceProp = void*;
 
 using KERNEL_EXEC_POL = RAJA::KernelPolicy<
     RAJA::statement::SyclKernel<
@@ -311,6 +316,36 @@ using KERNEL_EXEC_POL = RAJA::KernelPolicy<
         >
       >
     >;
+
+namespace clover{
+static inline void checkError(const int err = 0) {
+  if (err != 0) {
+    std::cerr << "Unspecified error in RAJA SYCL" << std::endl;
+    std::abort();
+  }
+}
+}
+
+static inline rajaError_t rajaDeviceSynchronize() {
+  camp::resources::Sycl::wait();
+  return 0;
+}
+
+static inline rajaError_t rajaGetDeviceProperties(rajaDeviceProp * props, int id){
+  return 0;
+}
+
+static inline rajaError_t rajaSetDevice(int id){
+  return 0;
+}
+
+static inline rajaError_t rajaGetDevice(int* id){
+  return 0;
+}
+
+static inline rajaError_t rajaGetDeviceCount(int *count){
+  return 0;
+}
 
 #endif
 #endif
