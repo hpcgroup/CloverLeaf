@@ -64,6 +64,7 @@ static inline void checkError(const hipError_t err = hipGetLastError()) {
   }
 }
 
+//allocate memory
 template <typename T> static inline T *alloc(size_t count) {
   void *p{};
 #ifdef CLOVER_MANAGED_ALLOC
@@ -78,6 +79,7 @@ template <typename T> static inline T *alloc(size_t count) {
   return static_cast<T *>(p);
 }
 
+//deallocate 
 static inline void dealloc(void *p) {
   if (auto result = hipFree(p); result != hipSuccess) {
     std::cerr << "Failed to deallocate " << p << ": " << hipGetErrorString(result) << std::endl;
@@ -88,8 +90,16 @@ static inline void dealloc(void *p) {
 template <typename T> struct Buffer1D {
   size_t size;
   T *data;
-  Buffer1D(context &, size_t size) : size(size), data(alloc<T>(size)) {}
+  Buffer1D(context &, size_t size) : size(size), data(alloc<T>(size)) {
+    //memory allocation only
+    printf("[CLOVER_DEBUG] Allocate: 1D Buffer | Size: %zu bytes \n", size * sizeof(T));
+  }
   Buffer1D(context &, size_t size, T *host_init) : size(size), data(alloc<T>(size)) {
+    //memory creation+transfer
+    size_t sz = sizeof(T) * size;
+    printf("[CLOVER_DEBUG] Transfer (H2D): 1D Buffer | Elements: %zu | TypeSize: %zu | Total: %zu bytes\n", 
+            size, sizeof(T), sz);
+
     if (auto result = hipMemcpy(data, host_init, (sizeof(T) * size), CLOVER_MEMCPY_KIND_H2D); result != hipSuccess) {
       std::cerr << "Buffer1D hipMemcpy failed:"
                 << ": " << hipGetErrorString(result) << std::endl;
@@ -114,6 +124,11 @@ template <typename T> struct Buffer1D {
 
   std::vector<T> mirrored() const {
     std::vector<T> buffer(size);
+    //device to host
+    size_t sz=buffer.size()*sizeof(T);
+    printf("[CLOVER_DEBUG] Transfer (D2H): 1D Buffer Mirror | Elements: %zu | Total: %zu bytes\n", 
+            size, sz);
+
     if (auto result = hipMemcpy(buffer.data(), data, buffer.size() * sizeof(T), CLOVER_MEMCPY_KIND_D2H); result != hipSuccess) {
       std::cerr << "hipMemcpy failed:"
                 << ": " << hipGetErrorString(result) << std::endl;
@@ -150,6 +165,11 @@ template <typename T> struct Buffer2D {
 
   std::vector<T> mirrored() const {
     std::vector<T> buffer(sizeX * sizeY);
+
+    size_t sz=buffer.size()*sizeof(T);
+    printf("[CLOVER_DEBUG] Transfer (D2H): 2D Buffer Mirror | Dimensions: %zu x %zu | Total: %zu bytes\n", 
+            sizeX, sizeY, sz);
+
     if (auto result = hipMemcpy(buffer.data(), data, buffer.size() * sizeof(T), CLOVER_MEMCPY_KIND_D2H); result != hipSuccess) {
       std::cerr << "hipMemcpy failed:"
                 << ": " << hipGetErrorString(result) << std::endl;

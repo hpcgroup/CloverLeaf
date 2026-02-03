@@ -120,11 +120,19 @@ void clover_exchange(global_variables &globals, const int fields[NUM_FIELDS], co
   auto bottom_rcv_staging = stage ? bottom_rcv_staging_vector.data() : nullptr;
   auto bottom_snd_staging = stage ? bottom_snd_staging_vector.data() : nullptr;
 
+  //1. device -> host
   auto deviceToStaging = [](double *staging, clover::Buffer1D<double> &device) {
+    size_t sz = device.size * sizeof(double);
+    printf("[CLOVER_COMM_DEBUG] Transfer (D2H): Device to Staging | Elements: %zu | Size: %zu bytes\n", 
+            device.size, sz);
     clover::checkError(hipMemcpy(staging, device.data, device.size * sizeof(double), CLOVER_MEMCPY_KIND_D2H));
   };
 
+  //2. host -> device
   auto stagingToDevice = [](double *staging, clover::Buffer1D<double> &device) {
+    size_t sz = device.size * sizeof(double);
+    printf("[CLOVER_COMM_DEBUG] Transfer (H2D): Staging to Device | Elements: %zu | Size: %zu bytes\n", 
+            device.size, sz);
     clover::checkError(hipMemcpy(device.data, staging, device.size * sizeof(double), CLOVER_MEMCPY_KIND_H2D));
   };
 
