@@ -35,6 +35,13 @@ CloverLeaf. If not, see http://www.gnu.org/licenses/.
 #include "comms.h"
 #include "pack_kernel.h"
 
+//to determine type
+static const char* get_clover_type_name(size_t type_sz) {
+    if (type_sz == 8) return "double";
+    if (type_sz == 4) return "float/int";
+    return "unknown";
+}
+
 void clover_allocate_buffers(global_variables &globals, parallel_ &parallel) {
 
   // Unallocated buffers for external boundaries caused issues on some systems so they are now
@@ -122,17 +129,27 @@ void clover_exchange(global_variables &globals, const int fields[NUM_FIELDS], co
 
   //1. device -> host
   auto deviceToStaging = [](double *staging, clover::Buffer1D<double> &device) {
-    size_t sz = device.size * sizeof(double);
-    printf("[CLOVER_COMM_DEBUG] Transfer (D2H): Device to Staging | Elements: %zu | Size: %zu bytes\n", 
-            device.size, sz);
+    // 인자로 들어온 staging 포인터가 가리키는 실제 타입을 추론합니다.
+    using T = typename std::remove_pointer<decltype(staging)>::type;
+    size_t type_sz = sizeof(T);
+    size_t sz = device.size * type_sz;
+
+    printf("[CLOVER_COMM_DEBUG] Transfer (D2H): Device to Staging | Type: %s (%zu bytes) | Elements: %zu | Total: %zu bytes\n", 
+            get_clover_type_name(type_sz), type_sz, device.size, sz);
+
     clover::checkError(hipMemcpy(staging, device.data, device.size * sizeof(double), CLOVER_MEMCPY_KIND_D2H));
   };
 
   //2. host -> device
   auto stagingToDevice = [](double *staging, clover::Buffer1D<double> &device) {
-    size_t sz = device.size * sizeof(double);
-    printf("[CLOVER_COMM_DEBUG] Transfer (H2D): Staging to Device | Elements: %zu | Size: %zu bytes\n", 
-            device.size, sz);
+
+    using T = typename std::remove_pointer<decltype(staging)>::type;
+    size_t type_sz = sizeof(T);
+    size_t sz = device.size * type_sz;
+    
+    printf("[CLOVER_COMM_DEBUG] Transfer (H2D): Staging to Device | Type: %s (%zu bytes) | Elements: %zu | Total: %zu bytes\n", 
+            get_clover_type_name(type_sz), type_sz, device.size, sz);
+
     clover::checkError(hipMemcpy(device.data, staging, device.size * sizeof(double), CLOVER_MEMCPY_KIND_H2D));
   };
 
