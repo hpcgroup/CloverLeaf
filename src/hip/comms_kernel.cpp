@@ -129,7 +129,7 @@ void clover_exchange(global_variables &globals, const int fields[NUM_FIELDS], co
 
   //1. device -> host
   auto deviceToStaging = [](double *staging, clover::Buffer1D<double> &device) {
-    // 인자로 들어온 staging 포인터가 가리키는 실제 타입을 추론합니다.
+
     using T = typename std::remove_pointer<decltype(staging)>::type;
     size_t type_sz = sizeof(T);
     size_t sz = device.size * type_sz;
