@@ -75,13 +75,16 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
 
     int range = (ymax - ymin + 1) * (xmax - xmin + 1);
 
+    using RAJA_VALOP_PLUS = RAJA::expt::ValOp<double, RAJA::operators::plus>;
     RAJA::forall<reduce_policy>(RAJA::TypedRangeSegment<int>(0, range),
       RAJA::expt::Reduce<RAJA::operators::plus>(&vol),
       RAJA::expt::Reduce<RAJA::operators::plus>(&mass),
       RAJA::expt::Reduce<RAJA::operators::plus>(&ie),
       RAJA::expt::Reduce<RAJA::operators::plus>(&ke),
       RAJA::expt::Reduce<RAJA::operators::plus>(&press),
-      [=] RAJA_HOST_DEVICE (int gid, double &_vol, double &_mass, double &_ie, double &_ke, double &_press) {
+      [=] RAJA_HOST_DEVICE (int gid, RAJA_VALOP_PLUS &_vol, RAJA_VALOP_PLUS &_mass,
+        RAJA_VALOP_PLUS &_ie, RAJA_VALOP_PLUS &_ke, RAJA_VALOP_PLUS &_press) {
+
         int v = gid;
 
         const size_t j = xmin + 1 + v % (xmax - xmin + 1);

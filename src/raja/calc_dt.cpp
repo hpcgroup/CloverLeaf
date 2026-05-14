@@ -41,6 +41,7 @@ void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, 
                     clover::Buffer2D<double> &energy0, clover::Buffer2D<double> &pressure, clover::Buffer2D<double> &viscosity_a,
                     clover::Buffer2D<double> &soundspeed, clover::Buffer2D<double> &xvel0, clover::Buffer2D<double> &yvel0,
                     double &dt_min_val, int &dtl_control, double &xl_pos, double &yl_pos, int &jldt, int &kldt, int &small) {
+  double kernel_time = timer();
 
   small = 0;
   dt_min_val = g_big;
@@ -63,7 +64,7 @@ void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, 
 
   RAJA::forall<reduce_policy>(arange,
     RAJA::expt::Reduce<RAJA::operators::minimum>(&dt_min_val),
-    [=] RAJA_HOST_DEVICE(int v, double &_dt_min_val) {
+    [=] RAJA_HOST_DEVICE(int v, RAJA::expt::ValOp<double, RAJA::operators::minimum> &_dt_min_val) {
       const auto i = xStart + (v % sizeX);
       const auto j = yStart + (v / sizeX);
 
@@ -90,12 +91,11 @@ void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, 
       } else {
         dtdivt = g_big;
       }
-      _dt_min_val = std::fmin(std::fmin(dtct, std::fmin(dtut, std::fmin(dtvt, dtdivt))), _dt_min_val);
+      _dt_min_val.min(std::fmin(dtct, std::fmin(dtut, std::fmin(dtvt, dtdivt))));
   });
 
   if (globals.profiler_on) {
-    globals.profiler.timestep += timer() - globals.profiler.kernel_time;
-    globals.profiler.kernel_time = timer();
+    globals.profiler.timestep += timer() - kernel_time;
   }
 
   dtl_control = static_cast<int>(10.01 * (jk_control - static_cast<int>(jk_control)));
