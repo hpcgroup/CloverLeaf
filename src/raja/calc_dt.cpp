@@ -63,7 +63,7 @@ void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, 
 
   RAJA::forall<reduce_policy>(arange,
     RAJA::expt::Reduce<RAJA::operators::minimum>(&dt_min_val),
-    [=] RAJA_HOST_DEVICE(int v, double &_dt_min_val) {
+    [=] RAJA_HOST_DEVICE(int v, RAJA::expt::ValOp<double, RAJA::operators::minimum> &_dt_min_val) {
       const auto i = xStart + (v % sizeX);
       const auto j = yStart + (v / sizeX);
 
@@ -90,7 +90,7 @@ void calc_dt_kernel(global_variables &globals, int x_min, int x_max, int y_min, 
       } else {
         dtdivt = g_big;
       }
-      _dt_min_val = std::fmin(std::fmin(dtct, std::fmin(dtut, std::fmin(dtvt, dtdivt))), _dt_min_val);
+      _dt_min_val.min(std::fmin(dtct, std::fmin(dtut, std::fmin(dtvt, dtdivt))));
   });
 
   if (globals.profiler_on) {

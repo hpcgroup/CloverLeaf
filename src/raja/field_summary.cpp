@@ -81,7 +81,12 @@ void field_summary(global_variables &globals, parallel_ &parallel) {
       RAJA::expt::Reduce<RAJA::operators::plus>(&ie),
       RAJA::expt::Reduce<RAJA::operators::plus>(&ke),
       RAJA::expt::Reduce<RAJA::operators::plus>(&press),
-      [=] RAJA_HOST_DEVICE (int gid, double &_vol, double &_mass, double &_ie, double &_ke, double &_press) {
+      [=] RAJA_HOST_DEVICE (int gid,
+                            RAJA::expt::ValOp<double, RAJA::operators::plus> &_vol,
+                            RAJA::expt::ValOp<double, RAJA::operators::plus> &_mass,
+                            RAJA::expt::ValOp<double, RAJA::operators::plus> &_ie,
+                            RAJA::expt::ValOp<double, RAJA::operators::plus> &_ke,
+                            RAJA::expt::ValOp<double, RAJA::operators::plus> &_press) {
         int v = gid;
 
         const size_t j = xmin + 1 + v % (xmax - xmin + 1);
