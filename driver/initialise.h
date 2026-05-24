@@ -27,6 +27,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 struct run_args {
   enum class staging_buffer { enabled, disable, automatic };
